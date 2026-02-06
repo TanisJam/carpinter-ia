@@ -81,14 +81,14 @@ function ConfiguradorContent() {
       try {
         const configJson = atob(decodeURIComponent(aiConfigParam));
         const config = JSON.parse(configJson);
-        
+
         // Validate with schema
         const validatedConfig = placardConfigSchema.parse(config);
-        
+
         // Load into store
         loadConfigFromAI(validatedConfig);
         setIsAIGenerated(true);
-        
+
         console.log("Loaded AI-generated config:", validatedConfig.id);
       } catch (error) {
         console.error("Error loading AI config:", error);
