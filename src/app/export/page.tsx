@@ -195,7 +195,7 @@ export default function ExportPage() {
                       <div className="flex justify-between items-center py-2 border-b border-gray-100">
                         <span className="text-sm text-gray-600">Material</span>
                         <span className="font-semibold text-gray-900">
-                          {config.structure.material.name}
+                          {config.structure.material.label}
                         </span>
                       </div>
                       <div className="flex justify-between items-center py-2">
