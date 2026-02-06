@@ -153,7 +153,9 @@ export function generateMockConfig(transcript: string): PlacardConfig {
     },
     doors: {
       type: "batientes",
-      ...DOOR_CIRCULATION.batientes,
+      depthConsumption: DOOR_CIRCULATION.batientes.depthConsumption,
+      circulationRequired: DOOR_CIRCULATION.batientes.required,
+      circulationRecommended: DOOR_CIRCULATION.batientes.recommended,
     },
     sections,
   };

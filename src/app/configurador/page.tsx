@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/shared/header";
@@ -28,7 +28,7 @@ function CanvasPlaceholder() {
   );
 }
 
-export default function ConfiguradorPage() {
+function ConfiguradorContent() {
   const searchParams = useSearchParams();
   const setIsAIGenerated = useWardrobeStore((s) => s.setIsAIGenerated);
   const loadConfigFromAI = useWardrobeStore((s) => s.loadConfigFromAI);
@@ -38,17 +38,11 @@ export default function ConfiguradorPage() {
     
     if (aiConfigParam) {
       try {
-        // Decode base64 and parse JSON
         const configJson = atob(decodeURIComponent(aiConfigParam));
         const config = JSON.parse(configJson);
-        
-        // Validate with schema
         const validatedConfig = placardConfigSchema.parse(config);
-        
-        // Load into store
         loadConfigFromAI(validatedConfig);
         setIsAIGenerated(true);
-        
         console.log("Loaded AI-generated config:", validatedConfig.id);
       } catch (error) {
         console.error("Error loading AI config:", error);
@@ -61,18 +55,15 @@ export default function ConfiguradorPage() {
     <>
       <Header />
       <div className="h-[calc(100vh-3.5rem)] flex flex-col lg:flex-row">
-        {/* Wizard (izquierda en desktop) */}
         <div className="w-full lg:w-[420px] border-r flex flex-col bg-background">
           <ScrollArea className="flex-1">
             <WizardContainer />
           </ScrollArea>
         </div>
 
-        {/* Canvas 3D (derecha en desktop) */}
         <div className="flex-1 relative">
           <WardrobeCanvas />
 
-          {/* Boton para abrir panel de personalizacion en mobile */}
           <div className="absolute top-4 right-4 lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -88,7 +79,6 @@ export default function ConfiguradorPage() {
             </Sheet>
           </div>
 
-          {/* Panel lateral de personalizacion (visible en desktop) */}
           <div className="hidden lg:block absolute top-4 right-4 w-[280px] max-h-[calc(100%-2rem)] bg-background/95 backdrop-blur border rounded-lg shadow-lg overflow-hidden">
             <ScrollArea className="max-h-[calc(100vh-6rem)]">
               <CustomizationPanel />
@@ -97,5 +87,13 @@ export default function ConfiguradorPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function ConfiguradorPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <ConfiguradorContent />
+    </Suspense>
   );
 }
