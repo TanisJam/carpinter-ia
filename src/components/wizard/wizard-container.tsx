@@ -56,9 +56,11 @@ export function WizardContainer() {
         </Button>
 
         {isLast ? (
-          <Button>Finalizar</Button>
+          <Button
+          onClick={() => window.location.assign("/export")}
+          >Finalizar</Button>
         ) : (
-          <Button onClick={() => window.location.assign("/export")}>Siguiente</Button>
+          <Button onClick={nextStep}>Siguiente</Button>
         )}
       </div>
     </div>
