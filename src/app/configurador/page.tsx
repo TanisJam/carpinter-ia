@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useWardrobeStore } from "@/stores/wardrobe-store";
@@ -11,6 +12,8 @@ import { StepMateriales } from "@/components/wizard/step-materiales";
 import { StepPuertas } from "@/components/wizard/step-puertas";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Settings } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { placardConfigSchema } from "@/schemas/wardrobe-schema";
 
 const WardrobeCanvas = dynamic(
   () =>
@@ -54,6 +57,7 @@ const STEP_COMPONENTS = [
 
 export default function ConfiguradorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
 
   const currentStep = useWardrobeStore((s) => s.currentStep);
@@ -61,6 +65,8 @@ export default function ConfiguradorPage() {
   const nextStep = useWardrobeStore((s) => s.nextStep);
   const prevStep = useWardrobeStore((s) => s.prevStep);
   const sections = useWardrobeStore((s) => s.config.sections);
+  const setIsAIGenerated = useWardrobeStore((s) => s.setIsAIGenerated);
+  const loadConfigFromAI = useWardrobeStore((s) => s.loadConfigFromAI);
 
   const StepComponent = STEP_COMPONENTS[currentStep - 1];
   const isFirst = currentStep === 1;
@@ -68,6 +74,30 @@ export default function ConfiguradorPage() {
 
   const totalUnits = sections.length;
   const estimatedCost = 1240;
+
+  useEffect(() => {
+    const aiConfigParam = searchParams.get("aiConfig");
+    
+    if (aiConfigParam) {
+      try {
+        // Decode base64 and parse JSON
+        const configJson = atob(decodeURIComponent(aiConfigParam));
+        const config = JSON.parse(configJson);
+        
+        // Validate with schema
+        const validatedConfig = placardConfigSchema.parse(config);
+        
+        // Load into store
+        loadConfigFromAI(validatedConfig);
+        setIsAIGenerated(true);
+        
+        console.log("Loaded AI-generated config:", validatedConfig.id);
+      } catch (error) {
+        console.error("Error loading AI config:", error);
+        alert("Error al cargar la configuración generada por IA");
+      }
+    }
+  }, [searchParams, loadConfigFromAI, setIsAIGenerated]);
 
   return (
     <div className="h-screen flex flex-col bg-white">
