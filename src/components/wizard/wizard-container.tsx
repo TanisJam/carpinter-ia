@@ -36,27 +36,20 @@ export function WizardContainer() {
           </Badge>
         </div>
       )}
-      
-      <StepIndicator
-        steps={WIZARD_STEPS}
-        currentStep={currentStep}
-      />
+
+      <StepIndicator steps={WIZARD_STEPS} currentStep={currentStep} />
 
       <div className="flex-1 overflow-y-auto p-6">
         <StepComponent />
       </div>
 
       <div className="flex justify-between items-center p-4 border-t">
-        <Button
-          variant="outline"
-          onClick={prevStep}
-          disabled={isFirst}
-        >
+        <Button variant="outline" onClick={prevStep} disabled={isFirst}>
           Anterior
         </Button>
 
         {isLast ? (
-          <Button>Finalizar</Button>
+          <Button onClick={() => router.push("/export")}>Finalizar</Button>
         ) : (
           <Button onClick={nextStep}>Siguiente</Button>
         )}
