@@ -80,9 +80,13 @@ function ConfiguradorContent() {
   const totalUnits = sections.length;
   const estimatedCost = 1240;
 
+  const [isGenerating, setIsGenerating] = useState(false);
+
   useEffect(() => {
     const aiConfigParam = searchParams.get("aiConfig");
+    const aiPrompt = searchParams.get("ai");
 
+    // Case 1: Pre-generated config passed via URL (legacy or specific use case)
     if (aiConfigParam) {
       try {
         const configJson = atob(decodeURIComponent(aiConfigParam));
@@ -100,6 +104,50 @@ function ConfiguradorContent() {
         console.error("Error loading AI config:", error);
         alert("Error al cargar la configuración generada por IA");
       }
+    } 
+    // Case 2: Text prompt passed, need to generate config
+    else if (aiPrompt) {
+      const generateConfig = async () => {
+        setIsGenerating(true);
+        try {
+          const response = await fetch("/api/nl-to-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ transcript: aiPrompt }),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Error al generar la configuración");
+          }
+
+          const data = await response.json();
+          
+          if (data.config) {
+            // Load into store
+            loadConfigFromAI(data.config);
+            setIsAIGenerated(true);
+            
+            // Clean URL
+            const url = new URL(window.location.href);
+            url.searchParams.delete("ai");
+            window.history.replaceState({}, "", url);
+            
+            if (data.warning) {
+              console.warn(data.warning);
+            }
+          }
+        } catch (error) {
+          console.error("Error generating config:", error);
+          alert("Hubo un error al generar el diseño con IA. Por favor intenta nuevamente.");
+        } finally {
+          setIsGenerating(false);
+        }
+      };
+
+      generateConfig();
     }
   }, [searchParams, loadConfigFromAI, setIsAIGenerated]);
 
@@ -151,12 +199,23 @@ function ConfiguradorContent() {
         </div>
 
         {/* Wizard (izquierda en desktop) */}
-        <div className="hidden lg:block w-[420px] border-r flex flex-col bg-background">
+        <div className="hidden lg:flex w-[420px] border-r flex-col bg-background">
           <ScrollArea className="flex-1">
             <WizardContainer />
           </ScrollArea>
         </div>
       </div>
+      
+      {/* Loading Overlay */}
+      {isGenerating && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <h3 className="text-xl font-semibold">Generando tu diseño...</h3>
+            <p className="text-muted-foreground">La IA está analizando tu solicitud</p>
+          </div>
+        </div>
+      )}
     </>
   );
 }
