@@ -1,0 +1,34 @@
+{
+  "header": {
+    "appName": "WardrobeCraft",
+    "tagline": "Build your perfect custom wardrobe"
+  },
+  "hero": {
+    "title": "Describe your ideal closet",
+    "placeholder": "Quiero un placard para una nena de 8 años, con muchos cajones y estilo colorido",
+    "submitButton": "Start Designing",
+    "submitTip": "Tip: Press Ctrl+Enter to submit"
+  },
+  "divider": {
+    "text": "OR"
+  },
+  "options": [
+    {
+      "id": "dimensions",
+      "icon": "ruler",
+      "title": "Start with Dimensions",
+      "description": "Build step-by-step manually",
+      "route": "/configurador?step=dimensions"
+    },
+    {
+      "id": "saved",
+      "icon": "folder-open",
+      "title": "Load Saved Project",
+      "description": "Continue where you left off",
+      "route": "/saved-projects"
+    }
+  ],
+  "footer": {
+    "text": "Design • Visualize • Build your dream wardrobe"
+  }
+}
