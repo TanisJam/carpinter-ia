@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWardrobeStore } from "@/stores/wardrobe-store";
 import { Button } from "@/components/ui/button";
-import { Download, ArrowLeft, HelpCircle, User, Grid3x3 } from "lucide-react";
+import { Download, ArrowLeft, Grid3x3, HelpCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AppHeader } from "@/components/shared/app-header";
 
 export default function ExportPage() {
   const router = useRouter();
@@ -46,40 +47,7 @@ export default function ExportPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white px-4 md:px-8 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Grid3x3 className="w-5 h-5 text-gray-900" />
-            <span className="font-semibold text-sm tracking-tight">
-              WARDROBE CRAFT
-            </span>
-            <span className="text-xs text-gray-400 ml-2 hidden sm:inline">
-              CONFIGURATOR V.2.0
-            </span>
-          </div>
-
-          {/* Progress Steps - Hidden on mobile */}
-          <nav className="hidden md:flex items-center gap-8 text-sm">
-            <button className="text-gray-400 hover:text-gray-900">
-              01 Design
-            </button>
-            <button className="text-gray-400 hover:text-gray-900">
-              02 Customize
-            </button>
-            <button className="text-gray-900 font-medium">03 EXPORT</button>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <button className="p-2 hover:bg-gray-100 rounded-full">
-              <HelpCircle className="w-5 h-5 text-gray-600" />
-            </button>
-            <button className="p-2 hover:bg-gray-100 rounded-full">
-              <User className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       {/* Main Content */}
       <main className="flex-1 px-4 md:px-8 py-6 md:py-12">
