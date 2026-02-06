@@ -1,39 +1,118 @@
-import { Logo } from "./Logo";
-import { HeroSection } from "./HeroSection";
-import { Divider } from "./Divider";
-import { OptionsSection } from "./OptionsSection";
-import { Footer } from "./Footer";
-import copy from "@/copy/homepage.json";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Grid3x3, Sparkles, Mic } from "lucide-react";
 
 export function Homepage() {
+  const [description, setDescription] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = () => {
+    if (description.trim()) {
+      router.push(`/configurador?ai=${encodeURIComponent(description)}`);
+    }
+  };
+
+  const quickPrompts = [
+    "Minimalist bedroom closet",
+    "Luxury walk-in with island",
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 sm:bg-gradient-to-br sm:from-blue-100 sm:via-purple-50 sm:to-pink-100 flex items-center justify-center sm:p-4">
-      {/* Phone frame on desktop, full width on mobile */}
-      <div className="w-full min-h-screen sm:min-h-0 sm:w-[393px] sm:h-[853px] sm:max-h-[calc(100vh-2rem)] bg-gray-50 sm:rounded-3xl sm:shadow-2xl overflow-auto">
-        <div className="px-8 py-6 sm:py-6">
-          <div className="mb-8">
-            <Logo
-              appName={copy.header.appName}
-              className="justify-center mb-4"
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Navigation */}
+      <nav className="w-full px-6 py-4 flex justify-between items-center border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Grid3x3 className="w-5 h-5 text-gray-900" />
+          <span className="font-semibold text-sm tracking-tight text-gray-900">
+            WARDROBE ARCHITECT
+          </span>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16 md:pt-20">
+        {/* Header */}
+        <div className="text-center mb-10 md:mb-16 w-full">
+          <h1
+            className="text-4xl font-bold mb-5 md:mb-6 text-gray-900 leading-tight"
+            style={{
+              fontFamily:
+                "var(--font-space-grotesk), Space Grotesk, sans-serif",
+              fontSize: "clamp(2.25rem, 5vw, 3.75rem)",
+            }}
+          >
+            Describe your ideal closet
+          </h1>
+          <p
+            className="text-gray-600 text-base md:text-lg leading-relaxed px-4 mx-auto"
+            style={{ maxWidth: "700px" }}
+          >
+            Our AI-powered architect will generate a custom structural design
+            based on your needs, dimensions, and style preferences. Just tell us
+            what you imagine.
+          </p>
+        </div>
+
+        {/* Input Card */}
+        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8 mb-6">
+          <div className="relative">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full h-48 md:h-56 p-5 md:p-6 pr-20 bg-gray-50 border-0 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-0 resize-none text-sm md:text-base leading-relaxed"
+              placeholder="E.g., I want a walk-in wardrobe for a couple, with lots of hanging space for long dresses, a dedicated shoe rack for 20 pairs, and integrated lighting. The style should be minimal Nordic..."
             />
-            <p className="text-center text-lg text-gray-600">
-              {copy.header.tagline}
-            </p>
+
+            {/* Mic Button - Top Right */}
+            <button className="absolute right-5 top-5 p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <Mic className="w-5 h-5 text-gray-700" />
+            </button>
           </div>
 
-          <HeroSection
-            title={copy.hero.title}
-            placeholder={copy.hero.placeholder}
-            submitButton={copy.hero.submitButton}
-          />
+          {/* Bottom Section */}
+          <div className="mt-6 md:mt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {/* Quick Prompts */}
+            <div className="flex items-center gap-3 overflow-x-auto">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex-shrink-0">
+                TRY:
+              </span>
+              <button
+                onClick={() => setDescription("Minimalist bedroom closet")}
+                className="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors whitespace-nowrap flex-shrink-0"
+              >
+                "Minimalist bedroom closet"
+              </button>
+              <button
+                onClick={() => setDescription("Luxury walk-in with island")}
+                className="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors whitespace-nowrap flex-shrink-0"
+              >
+                "Luxury walk-in with island"
+              </button>
+            </div>
 
-          <Divider text={copy.divider.text} />
-
-          <OptionsSection options={copy.options} />
-
-          <Footer text={copy.footer.text} />
+            {/* Generate Button */}
+            <button
+              onClick={handleSubmit}
+              disabled={!description.trim()}
+              className="w-full md:w-auto px-6 py-3 bg-[#1e3a5f] hover:bg-[#2d4a6f] text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+            >
+              <Sparkles className="w-4 h-4" />
+              GENERATE DESIGN
+            </button>
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-100 bg-white py-8">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col items-center gap-4 text-sm text-gray-500">
+          <div className="text-center">
+            © 2026 Chat GPTO. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
