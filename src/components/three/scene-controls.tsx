@@ -1,8 +1,12 @@
 "use client";
 
 import { OrbitControls, Grid } from "@react-three/drei";
+import { useWardrobeStore } from "@/stores/wardrobe-store";
 
 export function SceneControls() {
+  const config = useWardrobeStore((s) => s.config);
+  const heightM = config.dimensions.height / 1000;
+
   return (
     <>
       <ambientLight intensity={0.5} />
@@ -14,9 +18,10 @@ export function SceneControls() {
         shadow-mapSize-height={1024}
       />
       <OrbitControls
+        target={[0, heightM / 2, 0]}
         minPolarAngle={0.1}
         maxPolarAngle={Math.PI / 2 - 0.1}
-        enablePan={false}
+        enablePan={true}
         minDistance={1}
         maxDistance={8}
       />
