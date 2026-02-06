@@ -1,22 +1,22 @@
 "use client";
 
 import { useWardrobeStore } from "@/stores/wardrobe-store";
-import { DIMENSION_LIMITS, MATERIALES, PUERTA_OPTIONS } from "@/lib/constants";
+import { DIMENSION_LIMITS, MATERIAL_CATALOG, DOOR_TYPE_OPTIONS } from "@/lib/constants";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { AISuggestions } from "./ai-suggestions";
-import type { Material } from "@/types/wardrobe";
+import type { MaterialId } from "@/schemas/wardrobe-schema";
 
-const MATERIAL_KEYS = Object.keys(MATERIALES) as Material[];
+const MATERIAL_KEYS = Object.keys(MATERIAL_CATALOG) as MaterialId[];
 
 export function CustomizationPanel() {
-  const dimensiones = useWardrobeStore((s) => s.dimensiones);
-  const setDimensiones = useWardrobeStore((s) => s.setDimensiones);
-  const material = useWardrobeStore((s) => s.material);
-  const setMaterial = useWardrobeStore((s) => s.setMaterial);
-  const tipoPuerta = useWardrobeStore((s) => s.tipoPuerta);
-  const setTipoPuerta = useWardrobeStore((s) => s.setTipoPuerta);
+  const dimensions = useWardrobeStore((s) => s.config.dimensions);
+  const setDimensions = useWardrobeStore((s) => s.setDimensions);
+  const materialId = useWardrobeStore((s) => s.config.structure.material.id);
+  const setMaterialId = useWardrobeStore((s) => s.setMaterialId);
+  const doorType = useWardrobeStore((s) => s.config.doors.type);
+  const setDoorType = useWardrobeStore((s) => s.setDoorType);
 
   return (
     <div className="space-y-6 p-4">
@@ -28,15 +28,15 @@ export function CustomizationPanel() {
             <div className="flex justify-between">
               <Label className="text-xs">Ancho</Label>
               <span className="text-xs text-muted-foreground">
-                {dimensiones.ancho} cm
+                {dimensions.width / 10} cm
               </span>
             </div>
             <Slider
-              value={[dimensiones.ancho]}
-              min={DIMENSION_LIMITS.ancho.min}
-              max={DIMENSION_LIMITS.ancho.max}
+              value={[dimensions.width / 10]}
+              min={DIMENSION_LIMITS.width.min / 10}
+              max={DIMENSION_LIMITS.width.max / 10}
               step={1}
-              onValueChange={([v]) => setDimensiones({ ancho: v })}
+              onValueChange={([v]) => setDimensions({ width: v * 10 })}
             />
           </div>
 
@@ -44,15 +44,15 @@ export function CustomizationPanel() {
             <div className="flex justify-between">
               <Label className="text-xs">Alto</Label>
               <span className="text-xs text-muted-foreground">
-                {dimensiones.alto} cm
+                {dimensions.height / 10} cm
               </span>
             </div>
             <Slider
-              value={[dimensiones.alto]}
-              min={DIMENSION_LIMITS.alto.min}
-              max={DIMENSION_LIMITS.alto.max}
+              value={[dimensions.height / 10]}
+              min={DIMENSION_LIMITS.height.min / 10}
+              max={DIMENSION_LIMITS.height.max / 10}
               step={1}
-              onValueChange={([v]) => setDimensiones({ alto: v })}
+              onValueChange={([v]) => setDimensions({ height: v * 10 })}
             />
           </div>
 
@@ -60,15 +60,15 @@ export function CustomizationPanel() {
             <div className="flex justify-between">
               <Label className="text-xs">Profundidad</Label>
               <span className="text-xs text-muted-foreground">
-                {dimensiones.profundidad} cm
+                {dimensions.depth / 10} cm
               </span>
             </div>
             <Slider
-              value={[dimensiones.profundidad]}
-              min={DIMENSION_LIMITS.profundidad.min}
-              max={DIMENSION_LIMITS.profundidad.max}
+              value={[dimensions.depth / 10]}
+              min={DIMENSION_LIMITS.depth.min / 10}
+              max={DIMENSION_LIMITS.depth.max / 10}
               step={1}
-              onValueChange={([v]) => setDimensiones({ profundidad: v })}
+              onValueChange={([v]) => setDimensions({ depth: v * 10 })}
             />
           </div>
         </div>
@@ -80,14 +80,14 @@ export function CustomizationPanel() {
         <h3 className="font-semibold text-sm mb-3">Material</h3>
         <div className="grid grid-cols-2 gap-2">
           {MATERIAL_KEYS.map((key) => {
-            const mat = MATERIALES[key];
+            const mat = MATERIAL_CATALOG[key];
             return (
               <button
                 key={key}
-                onClick={() => setMaterial(key)}
+                onClick={() => setMaterialId(key)}
                 className={`flex items-center gap-2 p-2 rounded-md border text-xs transition-all
                   ${
-                    material === key
+                    materialId === key
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   }`}
@@ -108,13 +108,13 @@ export function CustomizationPanel() {
       <div>
         <h3 className="font-semibold text-sm mb-3">Puertas</h3>
         <div className="space-y-2">
-          {PUERTA_OPTIONS.map((opt) => (
+          {DOOR_TYPE_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setTipoPuerta(opt.value)}
+              onClick={() => setDoorType(opt.value)}
               className={`w-full text-left p-2 rounded-md border text-xs transition-all
                 ${
-                  tipoPuerta === opt.value
+                  doorType === opt.value
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-primary/50"
                 }`}

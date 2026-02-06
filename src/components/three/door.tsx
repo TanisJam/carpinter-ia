@@ -1,6 +1,6 @@
 "use client";
 
-import { PANEL_THICKNESS } from "@/lib/constants";
+import { PANEL_THICKNESS_M } from "@/lib/constants";
 
 interface DoorProps {
   width: number;
@@ -25,7 +25,7 @@ export function Door({
     <group position={position}>
       {/* Panel de la puerta */}
       <mesh castShadow>
-        <boxGeometry args={[width, height, PANEL_THICKNESS]} />
+        <boxGeometry args={[width, height, PANEL_THICKNESS_M]} />
         <meshStandardMaterial
           color={color}
           roughness={roughness}
@@ -36,7 +36,7 @@ export function Door({
       </mesh>
 
       {/* Manija de la puerta */}
-      <mesh position={[width * 0.35, 0, PANEL_THICKNESS / 2 + 0.005]}>
+      <mesh position={[width * 0.35, 0, PANEL_THICKNESS_M / 2 + 0.005]}>
         <boxGeometry args={[0.015, handleHeight, 0.02]} />
         <meshStandardMaterial color="#888888" roughness={0.3} metalness={0.8} />
       </mesh>

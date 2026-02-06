@@ -1,10 +1,10 @@
 "use client";
 
-import { MATERIALES } from "@/lib/constants";
-import type { Material } from "@/types/wardrobe";
+import { MATERIAL_CATALOG } from "@/lib/constants";
+import type { MaterialId } from "@/types/wardrobe";
 
-export function useMaterialProps(material: Material) {
-  const config = MATERIALES[material];
+export function useMaterialProps(materialId: MaterialId) {
+  const config = MATERIAL_CATALOG[materialId];
   return {
     color: config.color,
     roughness: config.roughness,

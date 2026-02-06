@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function AISuggestions() {
-  const dimensiones = useWardrobeStore((s) => s.dimensiones);
+  const dimensions = useWardrobeStore((s) => s.config.dimensions);
   const aiSuggestions = useWardrobeStore((s) => s.aiSuggestions);
   const setAiSuggestions = useWardrobeStore((s) => s.setAiSuggestions);
   const applySuggestion = useWardrobeStore((s) => s.applySuggestion);
@@ -16,8 +16,8 @@ export function AISuggestions() {
   const handleGenerate = async () => {
     setIsLoadingAI(true);
     try {
-      const data = await fetchAISuggestions(dimensiones);
-      setAiSuggestions(data.sugerencias);
+      const data = await fetchAISuggestions(dimensions);
+      setAiSuggestions(data.suggestions);
     } catch {
       console.error("Error al obtener sugerencias");
     } finally {
@@ -45,12 +45,12 @@ export function AISuggestions() {
               onClick={() => applySuggestion(sug)}
             >
               <CardHeader className="py-3 px-4">
-                <CardTitle className="text-sm">{sug.descripcion}</CardTitle>
+                <CardTitle className="text-sm">{sug.description}</CardTitle>
               </CardHeader>
               <CardContent className="px-4 pb-3">
                 <p className="text-xs text-muted-foreground">
-                  {sug.columnas.length} columna{sug.columnas.length > 1 ? "s" : ""} -{" "}
-                  {sug.columnas.reduce((acc, c) => acc + c.modulos.length, 0)}{" "}
+                  {sug.sections.length} seccion{sug.sections.length > 1 ? "es" : ""} -{" "}
+                  {sug.sections.reduce((acc, s) => acc + s.modules.length, 0)}{" "}
                   modulos
                 </p>
                 <Button size="sm" variant="outline" className="mt-2 h-7 text-xs">

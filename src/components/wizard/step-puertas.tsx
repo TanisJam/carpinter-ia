@@ -1,11 +1,11 @@
 "use client";
 
 import { useWardrobeStore } from "@/stores/wardrobe-store";
-import { PUERTA_OPTIONS } from "@/lib/constants";
+import { DOOR_TYPE_OPTIONS } from "@/lib/constants";
 
 export function StepPuertas() {
-  const tipoPuerta = useWardrobeStore((s) => s.tipoPuerta);
-  const setTipoPuerta = useWardrobeStore((s) => s.setTipoPuerta);
+  const doorType = useWardrobeStore((s) => s.config.doors.type);
+  const setDoorType = useWardrobeStore((s) => s.setDoorType);
 
   return (
     <div className="space-y-6">
@@ -17,13 +17,13 @@ export function StepPuertas() {
       </div>
 
       <div className="space-y-3">
-        {PUERTA_OPTIONS.map((option) => {
-          const isSelected = tipoPuerta === option.value;
+        {DOOR_TYPE_OPTIONS.map((option) => {
+          const isSelected = doorType === option.value;
 
           return (
             <button
               key={option.value}
-              onClick={() => setTipoPuerta(option.value)}
+              onClick={() => setDoorType(option.value)}
               className={`
                 w-full flex flex-col p-4 rounded-lg border-2 transition-all text-left
                 ${

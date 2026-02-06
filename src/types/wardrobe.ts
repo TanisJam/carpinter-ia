@@ -1,15 +1,22 @@
+// Re-export de todos los tipos inferidos del schema Zod
 export type {
-  Dimensiones,
-  ModuloTipo,
-  Modulo,
-  Columna,
-  Material,
-  TipoPuerta,
-  WardrobeConfig,
+  MaterialId,
+  MaterialSpec,
+  BackPanelSpec,
+  DoorType,
+  DoorSystem,
+  Zocalo,
+  Maletero,
+  Structure,
+  HangingVariant,
+  HangingModule,
+  DrawerVariant,
+  DrawerModule,
+  ShelvingModule,
+  Module,
+  Section,
+  Dimensions,
+  PlacardMetadata,
+  PlacardConfig,
+  AISuggestion,
 } from "@/schemas/wardrobe-schema";
-
-export interface AISuggestion {
-  id: string;
-  descripcion: string;
-  columnas: import("@/schemas/wardrobe-schema").Columna[];
-}

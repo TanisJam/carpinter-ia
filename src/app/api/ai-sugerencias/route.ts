@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { dimensiones } = parsed.data;
+    const { dimensions } = parsed.data;
 
     // ---------------------------------------------------
     // TODO: Reemplazar con llamada real a API de IA
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     //   method: "POST",
     //   headers: { Authorization: `Bearer ${process.env.AI_API_KEY}` },
     //   body: JSON.stringify({
-    //     prompt: `Sugiere layouts de placard para ${dimensiones.ancho}x${dimensiones.alto}x${dimensiones.profundidad}cm...`
+    //     prompt: `Sugiere layouts de placard para ${dimensions.width}x${dimensions.height}x${dimensions.depth}mm...`
     //   }),
     // });
     // ---------------------------------------------------
@@ -32,73 +32,146 @@ export async function POST(request: NextRequest) {
     const mockSuggestions = [
       {
         id: "sug-1",
-        descripcion: "Clasico: espacio para colgar arriba, cajones abajo",
-        columnas: [
+        name: "Clasico",
+        description: "Clasico: espacio para colgar arriba, cajones abajo",
+        sections: [
           {
-            id: "col-s1-1",
-            anchoRelativo: 0.6,
-            modulos: [
-              { id: "m1", tipo: "barra" as const, altura: 120 },
-              { id: "m2", tipo: "estante" as const, altura: 40 },
-              { id: "m3", tipo: "cajon" as const, altura: 25 },
-              { id: "m4", tipo: "cajon" as const, altura: 25 },
+            id: "sec-s1-1",
+            order: 0,
+            width: 600,
+            modules: [
+              {
+                type: "hanging" as const,
+                id: "m1",
+                variant: "medio" as const,
+                height: 1100,
+                rodPositionFromTop: 50,
+                rodDiameter: 25,
+                garmentSpacing: 40,
+              },
+              {
+                type: "drawers" as const,
+                id: "m2",
+                variant: "estandar" as const,
+                height: 640,
+                drawerCount: 4,
+                drawerFrontHeight: 160,
+                slideClearance: 12.7,
+                slideType: "extraccion_total" as const,
+                hasDividers: false,
+              },
             ],
           },
           {
-            id: "col-s1-2",
-            anchoRelativo: 0.4,
-            modulos: [
-              { id: "m5", tipo: "estante" as const, altura: 35 },
-              { id: "m6", tipo: "estante" as const, altura: 35 },
-              { id: "m7", tipo: "estante" as const, altura: 35 },
-              { id: "m8", tipo: "estante" as const, altura: 35 },
-              { id: "m9", tipo: "cajon" as const, altura: 30 },
-              { id: "m10", tipo: "cajon" as const, altura: 30 },
+            id: "sec-s1-2",
+            order: 1,
+            width: 600,
+            modules: [
+              {
+                type: "shelving" as const,
+                id: "m3",
+                height: 1450,
+                shelfCount: 5,
+                shelfSpacing: 290,
+                adjustable: true,
+              },
+              {
+                type: "drawers" as const,
+                id: "m4",
+                variant: "estandar" as const,
+                height: 320,
+                drawerCount: 2,
+                drawerFrontHeight: 160,
+                slideClearance: 12.7,
+                slideType: "extraccion_total" as const,
+                hasDividers: false,
+              },
             ],
           },
         ],
       },
       {
         id: "sug-2",
-        descripcion:
-          "Organizacion maxima: 3 columnas con variedad de modulos",
-        columnas: [
+        name: "Organizacion maxima",
+        description:
+          "Organizacion maxima: 3 secciones con variedad de modulos",
+        sections: [
           {
-            id: "col-s2-1",
-            anchoRelativo: 0.33,
-            modulos: [
-              { id: "m11", tipo: "barra" as const, altura: 140 },
-              { id: "m12", tipo: "cajon" as const, altura: 30 },
-              { id: "m13", tipo: "cajon" as const, altura: 30 },
-            ],
-          },
-          {
-            id: "col-s2-2",
-            anchoRelativo: 0.34,
-            modulos: [
-              { id: "m14", tipo: "estante" as const, altura: 40 },
-              { id: "m15", tipo: "estante" as const, altura: 40 },
-              { id: "m16", tipo: "estante" as const, altura: 40 },
-              { id: "m17", tipo: "estante" as const, altura: 40 },
-              { id: "m18", tipo: "estante" as const, altura: 40 },
-            ],
-          },
-          {
-            id: "col-s2-3",
-            anchoRelativo: 0.33,
-            modulos: [
+            id: "sec-s2-1",
+            order: 0,
+            width: 600,
+            modules: [
               {
+                type: "hanging" as const,
+                id: "m11",
+                variant: "largo" as const,
+                height: 1500,
+                rodPositionFromTop: 50,
+                rodDiameter: 25,
+                garmentSpacing: 60,
+              },
+              {
+                type: "drawers" as const,
+                id: "m12",
+                variant: "estandar" as const,
+                height: 320,
+                drawerCount: 2,
+                drawerFrontHeight: 160,
+                slideClearance: 12.7,
+                slideType: "extraccion_total" as const,
+                hasDividers: false,
+              },
+            ],
+          },
+          {
+            id: "sec-s2-2",
+            order: 1,
+            width: 600,
+            modules: [
+              {
+                type: "shelving" as const,
+                id: "m14",
+                height: 1740,
+                shelfCount: 6,
+                shelfSpacing: 290,
+                adjustable: true,
+              },
+            ],
+          },
+          {
+            id: "sec-s2-3",
+            order: 2,
+            width: 600,
+            modules: [
+              {
+                type: "hanging" as const,
                 id: "m19",
-                tipo: "barra" as const,
-                altura: Math.round(dimensiones.alto * 0.35),
+                variant: "corto" as const,
+                height: Math.min(Math.round(dimensions.height * 0.35), 900),
+                rodPositionFromTop: 50,
+                rodDiameter: 25,
+                garmentSpacing: 35,
               },
               {
+                type: "hanging" as const,
                 id: "m20",
-                tipo: "barra" as const,
-                altura: Math.round(dimensiones.alto * 0.35),
+                variant: "corto" as const,
+                height: Math.min(Math.round(dimensions.height * 0.35), 900),
+                rodPositionFromTop: 50,
+                rodDiameter: 25,
+                garmentSpacing: 35,
               },
-              { id: "m21", tipo: "cajon" as const, altura: 25 },
-              { id: "m22", tipo: "cajon" as const, altura: 25 },
+              {
+                type: "drawers" as const,
+                id: "m21",
+                variant: "accesorios" as const,
+                height: 200,
+                drawerCount: 2,
+                drawerFrontHeight: 100,
+                slideClearance: 12.7,
+                slideType: "extraccion_total" as const,
+                hasDividers: true,
+              },
             ],
           },
         ],
@@ -108,7 +181,7 @@ export async function POST(request: NextRequest) {
     // Simular delay de IA
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    return NextResponse.json({ sugerencias: mockSuggestions });
+    return NextResponse.json({ suggestions: mockSuggestions });
   } catch {
     return NextResponse.json(
       { error: "Error interno del servidor" },

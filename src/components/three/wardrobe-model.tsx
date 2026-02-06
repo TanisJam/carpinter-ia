@@ -1,151 +1,133 @@
 "use client";
 
 import { useWardrobeStore } from "@/stores/wardrobe-store";
-import { PANEL_THICKNESS, BACK_PANEL_THICKNESS, MATERIALES } from "@/lib/constants";
+import { PANEL_THICKNESS_M, BACK_PANEL_THICKNESS_M } from "@/lib/constants";
 import { Shelf } from "./shelf";
 import { Drawer } from "./drawer";
 import { HangingRod } from "./hanging-rod";
 import { Door } from "./door";
 
 export function WardrobeModel() {
-  const dimensiones = useWardrobeStore((s) => s.dimensiones);
-  const columnas = useWardrobeStore((s) => s.columnas);
-  const material = useWardrobeStore((s) => s.material);
-  const tipoPuerta = useWardrobeStore((s) => s.tipoPuerta);
-
-  const mat = MATERIALES[material];
+  const config = useWardrobeStore((s) => s.config);
+  const { dimensions, structure, sections, doors } = config;
+  const mat = structure.material;
   const matProps = { color: mat.color, roughness: mat.roughness, metalness: mat.metalness };
 
-  // Convertir cm a metros
-  const w = dimensiones.ancho / 100;
-  const h = dimensiones.alto / 100;
-  const d = dimensiones.profundidad / 100;
+  // Convertir mm a metros
+  const w = dimensions.width / 1000;
+  const h = dimensions.height / 1000;
+  const d = dimensions.depth / 1000;
 
-  // Interior util (descontando paneles)
-  const interiorW = w - PANEL_THICKNESS * 2;
-  const interiorH = h - PANEL_THICKNESS * 2;
-  const interiorD = d - BACK_PANEL_THICKNESS;
+  const interiorW = w - PANEL_THICKNESS_M * 2;
+  const interiorH = h - PANEL_THICKNESS_M * 2;
+  const interiorD = d - BACK_PANEL_THICKNESS_M;
 
   return (
     <group position={[0, 0, 0]}>
-      {/* ===== SHELL EXTERIOR ===== */}
-
       {/* Panel izquierdo */}
-      <mesh position={[-w / 2 + PANEL_THICKNESS / 2, h / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[PANEL_THICKNESS, h, d]} />
+      <mesh position={[-w / 2 + PANEL_THICKNESS_M / 2, h / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[PANEL_THICKNESS_M, h, d]} />
         <meshStandardMaterial {...matProps} />
       </mesh>
 
       {/* Panel derecho */}
-      <mesh position={[w / 2 - PANEL_THICKNESS / 2, h / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[PANEL_THICKNESS, h, d]} />
+      <mesh position={[w / 2 - PANEL_THICKNESS_M / 2, h / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[PANEL_THICKNESS_M, h, d]} />
         <meshStandardMaterial {...matProps} />
       </mesh>
 
       {/* Panel superior */}
-      <mesh position={[0, h - PANEL_THICKNESS / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w, PANEL_THICKNESS, d]} />
+      <mesh position={[0, h - PANEL_THICKNESS_M / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w, PANEL_THICKNESS_M, d]} />
         <meshStandardMaterial {...matProps} />
       </mesh>
 
-      {/* Panel inferior (base) */}
-      <mesh position={[0, PANEL_THICKNESS / 2, 0]} receiveShadow>
-        <boxGeometry args={[w, PANEL_THICKNESS, d]} />
+      {/* Panel inferior */}
+      <mesh position={[0, PANEL_THICKNESS_M / 2, 0]} receiveShadow>
+        <boxGeometry args={[w, PANEL_THICKNESS_M, d]} />
         <meshStandardMaterial {...matProps} />
       </mesh>
 
       {/* Panel trasero */}
-      <mesh position={[0, h / 2, -d / 2 + BACK_PANEL_THICKNESS / 2]}>
-        <boxGeometry args={[w, h, BACK_PANEL_THICKNESS]} />
-        <meshStandardMaterial color="#D4C8B0" roughness={0.95} />
+      <mesh position={[0, h / 2, -d / 2 + BACK_PANEL_THICKNESS_M / 2]}>
+        <boxGeometry args={[w, h, BACK_PANEL_THICKNESS_M]} />
+        <meshStandardMaterial color={structure.backPanel.color} roughness={0.95} />
       </mesh>
 
-      {/* ===== DIVISORES VERTICALES ===== */}
-      {columnas.length > 1 &&
-        columnas.slice(0, -1).map((_, i) => {
-          const xOffset = computeColumnXOffset(columnas, i + 1, interiorW);
+      {/* Divisores verticales entre secciones */}
+      {sections.length > 1 &&
+        sections.slice(0, -1).map((_, i) => {
+          const xOffset = computeSectionXOffset(sections, i + 1, interiorW);
           return (
             <mesh
               key={`divider-${i}`}
-              position={[
-                -interiorW / 2 + xOffset,
-                h / 2,
-                BACK_PANEL_THICKNESS / 2,
-              ]}
+              position={[-interiorW / 2 + xOffset, h / 2, BACK_PANEL_THICKNESS_M / 2]}
               castShadow
             >
-              <boxGeometry args={[PANEL_THICKNESS, interiorH, interiorD]} />
+              <boxGeometry args={[PANEL_THICKNESS_M, interiorH, interiorD]} />
               <meshStandardMaterial {...matProps} />
             </mesh>
           );
         })}
 
-      {/* ===== CONTENIDO POR COLUMNA ===== */}
-      {columnas.map((col, colIdx) => {
-        const colWidth =
-          col.anchoRelativo * interiorW -
-          (columnas.length > 1 ? PANEL_THICKNESS * 0.5 : 0);
-        const colXCenter = computeColumnCenterX(
-          columnas,
-          colIdx,
-          interiorW
-        );
-
-        let currentY = PANEL_THICKNESS;
+      {/* Contenido por seccion */}
+      {sections.map((sec, secIdx) => {
+        const secWidthM = sec.width / 1000;
+        const secXCenter = computeSectionCenterX(sections, secIdx, interiorW);
+        let currentY = PANEL_THICKNESS_M;
 
         return (
-          <group key={col.id}>
-            {col.modulos.map((mod) => {
-              const modH = mod.altura / 100;
+          <group key={sec.id}>
+            {sec.modules.map((mod) => {
+              const modH = mod.height / 1000;
               const yCenter = currentY + modH / 2;
               currentY += modH;
 
               const pos: [number, number, number] = [
-                colXCenter,
-                yCenter,
-                BACK_PANEL_THICKNESS / 2,
+                secXCenter, yCenter, BACK_PANEL_THICKNESS_M / 2,
               ];
 
-              switch (mod.tipo) {
-                case "estante":
-                  return (
-                    <Shelf
-                      key={mod.id}
-                      width={colWidth}
-                      depth={interiorD}
-                      position={[
-                        colXCenter,
-                        currentY,
-                        BACK_PANEL_THICKNESS / 2,
-                      ]}
-                      {...matProps}
-                    />
-                  );
-                case "cajon":
+              switch (mod.type) {
+                case "shelving": {
+                  const shelves = [];
+                  const spacingM = mod.shelfSpacing / 1000;
+                  for (let i = 0; i < mod.shelfCount; i++) {
+                    const shelfY = currentY - modH + spacingM * (i + 1);
+                    shelves.push(
+                      <Shelf
+                        key={`${mod.id}-s-${i}`}
+                        width={secWidthM - PANEL_THICKNESS_M * 0.5}
+                        depth={interiorD}
+                        position={[secXCenter, shelfY, BACK_PANEL_THICKNESS_M / 2]}
+                        {...matProps}
+                      />
+                    );
+                  }
+                  return <group key={mod.id}>{shelves}</group>;
+                }
+                case "drawers":
                   return (
                     <Drawer
                       key={mod.id}
-                      width={colWidth}
+                      width={secWidthM - PANEL_THICKNESS_M * 0.5}
                       height={modH * 0.85}
                       depth={interiorD * 0.9}
                       position={pos}
                       {...matProps}
                     />
                   );
-                case "barra":
+                case "hanging":
                   return (
                     <HangingRod
                       key={mod.id}
-                      width={colWidth * 0.9}
+                      width={(secWidthM - PANEL_THICKNESS_M * 0.5) * 0.9}
                       position={[
-                        colXCenter,
-                        currentY - 0.03,
-                        BACK_PANEL_THICKNESS / 2,
+                        secXCenter,
+                        currentY - mod.rodPositionFromTop / 1000,
+                        BACK_PANEL_THICKNESS_M / 2,
                       ]}
                     />
                   );
-                case "espacio":
-                  return null;
                 default:
                   return null;
               }
@@ -154,35 +136,18 @@ export function WardrobeModel() {
         );
       })}
 
-      {/* ===== PUERTAS ===== */}
-      {tipoPuerta !== "sin_puertas" && (
-        <group position={[0, 0, d / 2 + PANEL_THICKNESS / 2 + 0.002]}>
-          {columnas.map((col, colIdx) => {
-            const colWidth = col.anchoRelativo * interiorW;
-            const colXCenter = computeColumnCenterX(
-              columnas,
-              colIdx,
-              interiorW
-            );
-
-            if (tipoPuerta === "corredizas") {
-              return (
-                <Door
-                  key={`door-${col.id}`}
-                  width={colWidth + PANEL_THICKNESS}
-                  height={h - PANEL_THICKNESS * 2}
-                  position={[colXCenter, h / 2, 0]}
-                  {...matProps}
-                />
-              );
-            }
-
+      {/* Puertas */}
+      {doors.type !== "sin_puertas" && (
+        <group position={[0, 0, d / 2 + PANEL_THICKNESS_M / 2 + 0.002]}>
+          {sections.map((sec, secIdx) => {
+            const secWidthM = sec.width / 1000;
+            const secXCenter = computeSectionCenterX(sections, secIdx, interiorW);
             return (
               <Door
-                key={`door-${col.id}`}
-                width={colWidth}
-                height={h - PANEL_THICKNESS * 2}
-                position={[colXCenter, h / 2, 0]}
+                key={`door-${sec.id}`}
+                width={secWidthM}
+                height={h - PANEL_THICKNESS_M * 2}
+                position={[secXCenter, h / 2, 0]}
                 {...matProps}
               />
             );
@@ -193,27 +158,29 @@ export function WardrobeModel() {
   );
 }
 
-function computeColumnXOffset(
-  columnas: { anchoRelativo: number }[],
+function computeSectionXOffset(
+  sections: { width: number }[],
   targetIndex: number,
   interiorW: number
 ): number {
+  const totalWidth = sections.reduce((sum, s) => sum + s.width, 0);
   let offset = 0;
   for (let i = 0; i < targetIndex; i++) {
-    offset += columnas[i].anchoRelativo * interiorW;
+    offset += (sections[i].width / totalWidth) * interiorW;
   }
   return offset;
 }
 
-function computeColumnCenterX(
-  columnas: { anchoRelativo: number }[],
-  colIdx: number,
+function computeSectionCenterX(
+  sections: { width: number }[],
+  secIdx: number,
   interiorW: number
 ): number {
+  const totalWidth = sections.reduce((sum, s) => sum + s.width, 0);
   let offset = 0;
-  for (let i = 0; i < colIdx; i++) {
-    offset += columnas[i].anchoRelativo * interiorW;
+  for (let i = 0; i < secIdx; i++) {
+    offset += (sections[i].width / totalWidth) * interiorW;
   }
-  const colWidth = columnas[colIdx].anchoRelativo * interiorW;
-  return -interiorW / 2 + offset + colWidth / 2;
+  const secW = (sections[secIdx].width / totalWidth) * interiorW;
+  return -interiorW / 2 + offset + secW / 2;
 }

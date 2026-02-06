@@ -1,14 +1,14 @@
 "use client";
 
 import { useWardrobeStore } from "@/stores/wardrobe-store";
-import { MATERIALES } from "@/lib/constants";
-import type { Material } from "@/types/wardrobe";
+import { MATERIAL_CATALOG } from "@/lib/constants";
+import type { MaterialId } from "@/schemas/wardrobe-schema";
 
-const MATERIAL_KEYS = Object.keys(MATERIALES) as Material[];
+const MATERIAL_KEYS = Object.keys(MATERIAL_CATALOG) as MaterialId[];
 
 export function StepMateriales() {
-  const material = useWardrobeStore((s) => s.material);
-  const setMaterial = useWardrobeStore((s) => s.setMaterial);
+  const materialId = useWardrobeStore((s) => s.config.structure.material.id);
+  const setMaterialId = useWardrobeStore((s) => s.setMaterialId);
 
   return (
     <div className="space-y-6">
@@ -21,13 +21,13 @@ export function StepMateriales() {
 
       <div className="grid grid-cols-2 gap-3">
         {MATERIAL_KEYS.map((key) => {
-          const mat = MATERIALES[key];
-          const isSelected = material === key;
+          const mat = MATERIAL_CATALOG[key];
+          const isSelected = materialId === key;
 
           return (
             <button
               key={key}
-              onClick={() => setMaterial(key)}
+              onClick={() => setMaterialId(key)}
               className={`
                 flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left
                 ${

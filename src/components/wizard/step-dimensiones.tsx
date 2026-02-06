@@ -7,14 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 
 const FIELDS = [
-  { key: "ancho" as const, label: "Ancho", unit: "cm" },
-  { key: "alto" as const, label: "Alto", unit: "cm" },
-  { key: "profundidad" as const, label: "Profundidad", unit: "cm" },
+  { key: "width" as const, label: "Ancho", unit: "cm" },
+  { key: "height" as const, label: "Alto", unit: "cm" },
+  { key: "depth" as const, label: "Profundidad", unit: "cm" },
 ] as const;
 
 export function StepDimensiones() {
-  const dimensiones = useWardrobeStore((s) => s.dimensiones);
-  const setDimensiones = useWardrobeStore((s) => s.setDimensiones);
+  const dimensions = useWardrobeStore((s) => s.config.dimensions);
+  const setDimensions = useWardrobeStore((s) => s.setDimensions);
 
   return (
     <div className="space-y-6">
@@ -27,7 +27,10 @@ export function StepDimensiones() {
 
       {FIELDS.map(({ key, label, unit }) => {
         const limits = DIMENSION_LIMITS[key];
-        const value = dimensiones[key];
+        const valueMm = dimensions[key];
+        const valueCm = valueMm / 10;
+        const minCm = limits.min / 10;
+        const maxCm = limits.max / 10;
 
         return (
           <div key={key} className="space-y-3">
@@ -36,30 +39,30 @@ export function StepDimensiones() {
                 {label}
               </Label>
               <span className="text-sm text-muted-foreground">
-                {limits.min} - {limits.max} {unit}
+                {minCm} - {maxCm} {unit}
               </span>
             </div>
 
             <div className="flex items-center gap-4">
               <Slider
-                value={[value]}
-                min={limits.min}
-                max={limits.max}
+                value={[valueCm]}
+                min={minCm}
+                max={maxCm}
                 step={1}
-                onValueChange={([v]) => setDimensiones({ [key]: v })}
+                onValueChange={([v]) => setDimensions({ [key]: v * 10 })}
                 className="flex-1"
               />
               <div className="flex items-center gap-1">
                 <Input
                   id={key}
                   type="number"
-                  value={value}
-                  min={limits.min}
-                  max={limits.max}
+                  value={valueCm}
+                  min={minCm}
+                  max={maxCm}
                   onChange={(e) => {
                     const v = Number(e.target.value);
-                    if (v >= limits.min && v <= limits.max) {
-                      setDimensiones({ [key]: v });
+                    if (v >= minCm && v <= maxCm) {
+                      setDimensions({ [key]: v * 10 });
                     }
                   }}
                   className="w-20 text-center"

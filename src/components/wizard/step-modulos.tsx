@@ -1,7 +1,7 @@
 "use client";
 
 import { useWardrobeStore } from "@/stores/wardrobe-store";
-import { MODULO_LABELS } from "@/lib/constants";
+import { HANGING_HEIGHT_RANGES, DRAWER_FRONT_RANGES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,59 +15,107 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
-import type { ModuloTipo } from "@/types/wardrobe";
+import type { Module } from "@/schemas/wardrobe-schema";
 
-const MODULO_ALTURAS: Record<ModuloTipo, number> = {
-  estante: 40,
-  cajon: 25,
-  barra: 100,
-  espacio: 40,
+type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
+type ModulePreset = "hanging" | "shelving" | "drawers";
+
+const MODULE_TYPE_LABELS: Record<ModulePreset, string> = {
+  hanging: "Colgado",
+  shelving: "Estantes",
+  drawers: "Cajones",
 };
 
+/** Returns a label for a module based on its type and variant */
+function getModuleLabel(mod: Module): string {
+  switch (mod.type) {
+    case "hanging":
+      return HANGING_HEIGHT_RANGES[mod.variant].label;
+    case "shelving":
+      return "Estantes";
+    case "drawers":
+      return DRAWER_FRONT_RANGES[mod.variant].label;
+  }
+}
+
+/** Creates a default module object (without id) for a given type */
+function createDefaultModule(type: ModulePreset): DistributiveOmit<Module, "id"> {
+  switch (type) {
+    case "hanging":
+      return {
+        type: "hanging",
+        variant: "medio",
+        height: 1100,
+        rodPositionFromTop: 50,
+        rodDiameter: 25,
+        garmentSpacing: 40,
+      };
+    case "shelving":
+      return {
+        type: "shelving",
+        height: 900,
+        shelfCount: 3,
+        shelfSpacing: 290,
+        adjustable: true,
+      };
+    case "drawers":
+      return {
+        type: "drawers",
+        variant: "estandar",
+        height: 640,
+        drawerCount: 4,
+        drawerFrontHeight: 160,
+        slideClearance: 12.7,
+        slideType: "extraccion_total",
+        hasDividers: false,
+      };
+  }
+}
+
 export function StepModulos() {
-  const columnas = useWardrobeStore((s) => s.columnas);
-  const addColumna = useWardrobeStore((s) => s.addColumna);
-  const removeColumna = useWardrobeStore((s) => s.removeColumna);
-  const addModulo = useWardrobeStore((s) => s.addModulo);
-  const removeModulo = useWardrobeStore((s) => s.removeModulo);
-  const [selectedTipo, setSelectedTipo] = useState<ModuloTipo>("estante");
+  const sections = useWardrobeStore((s) => s.config.sections);
+  const addSection = useWardrobeStore((s) => s.addSection);
+  const removeSection = useWardrobeStore((s) => s.removeSection);
+  const addModule = useWardrobeStore((s) => s.addModule);
+  const removeModule = useWardrobeStore((s) => s.removeModule);
+  const [selectedType, setSelectedType] = useState<ModulePreset>("shelving");
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">Modulos interiores</h2>
         <p className="text-sm text-muted-foreground">
-          Divide tu placard en columnas y agrega modulos a cada una.
+          Divide tu placard en secciones y agrega modulos a cada una.
         </p>
       </div>
 
       <div className="flex items-center gap-2">
         <Button
-          onClick={addColumna}
+          onClick={() => addSection(600)}
           variant="outline"
           size="sm"
-          disabled={columnas.length >= 4}
+          disabled={sections.length >= 8}
         >
-          + Agregar columna
+          + Agregar seccion
         </Button>
         <span className="text-sm text-muted-foreground">
-          {columnas.length} de 4 columnas
+          {sections.length} de 8 secciones
         </span>
       </div>
 
       <div className="space-y-4">
-        {columnas.map((col, colIdx) => (
-          <Card key={col.id}>
+        {sections.map((sec, secIdx) => (
+          <Card key={sec.id}>
             <CardHeader className="py-3 px-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm">
-                  Columna {colIdx + 1}
+                  Seccion {secIdx + 1} ({sec.width / 10} cm)
                 </CardTitle>
-                {columnas.length > 1 && (
+                {sections.length > 1 && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeColumna(col.id)}
+                    onClick={() => removeSection(sec.id)}
                     className="text-destructive h-7 px-2"
                   >
                     Eliminar
@@ -78,25 +126,25 @@ export function StepModulos() {
             <CardContent className="px-4 pb-3">
               <ScrollArea className="max-h-48">
                 <div className="space-y-2">
-                  {col.modulos.map((mod) => (
+                  {sec.modules.map((mod) => (
                     <div
                       key={mod.id}
                       className="flex items-center justify-between py-1"
                     >
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary">
-                          {MODULO_LABELS[mod.tipo]}
+                          {getModuleLabel(mod)}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {mod.altura} cm
+                          {mod.height / 10} cm
                         </span>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeModulo(col.id, mod.id)}
+                        onClick={() => removeModule(sec.id, mod.id)}
                         className="h-6 px-2 text-xs"
-                        disabled={col.modulos.length <= 1}
+                        disabled={sec.modules.length <= 1}
                       >
                         x
                       </Button>
@@ -109,14 +157,14 @@ export function StepModulos() {
 
               <div className="flex items-center gap-2">
                 <Select
-                  value={selectedTipo}
-                  onValueChange={(v) => setSelectedTipo(v as ModuloTipo)}
+                  value={selectedType}
+                  onValueChange={(v) => setSelectedType(v as ModulePreset)}
                 >
                   <SelectTrigger className="h-8 text-xs flex-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(MODULO_LABELS).map(([value, label]) => (
+                    {Object.entries(MODULE_TYPE_LABELS).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
@@ -127,11 +175,9 @@ export function StepModulos() {
                   size="sm"
                   variant="outline"
                   className="h-8"
+                  disabled={sec.modules.length >= 3}
                   onClick={() =>
-                    addModulo(col.id, {
-                      tipo: selectedTipo,
-                      altura: MODULO_ALTURAS[selectedTipo],
-                    })
+                    addModule(sec.id, createDefaultModule(selectedType))
                   }
                 >
                   Agregar
