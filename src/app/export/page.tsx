@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Download, ArrowLeft, Grid3x3, HelpCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AppHeader } from "@/components/shared/app-header";
+import { DownloadPDFButton } from "@/components/pdf/DownloadPDFButton";
 
 export default function ExportPage() {
   const router = useRouter();
@@ -369,10 +370,13 @@ export default function ExportPage() {
             </section>
 
             {/* Download Button */}
-            <Button className="w-full bg-[#1e3a5f] hover:bg-[#2d4a6f] text-white py-6 text-sm font-semibold">
-              <Download className="w-4 h-4 mr-2" />
-              DOWNLOAD COMPLETE PDF GUIDE
-            </Button>
+      {/* PDF Export Section */}
+      <div className="pt-6 border-t border-border">
+        <div className="space-y-3">
+          <DownloadPDFButton />
+        </div>
+      </div>
+            
 
             <p className="text-xs text-gray-500 text-center">
               By downloading, you agree to our Terms of Service regarding custom

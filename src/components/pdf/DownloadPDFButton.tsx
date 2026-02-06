@@ -48,7 +48,7 @@ export function DownloadPDFButton() {
       disabled={status === "generating"}
       size="lg"
       variant={status === "success" ? "default" : "outline"}
-      className="w-full"
+      className="bg-[#1e3a5f] hover:bg-[#2d4a6f] text-white w-full"
     >
       {status === "generating" && (
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
