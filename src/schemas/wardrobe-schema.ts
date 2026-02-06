@@ -233,10 +233,10 @@ export const sectionSchema = z.object({
 
   /**
    * Ancho de la seccion en mm.
-   * Modulacion recomendada: 600, 800 o 900mm.
-   * Max 900mm sin soporte central (regla de estabilidad).
+   * Modulacion recomendada: 600, 800 o 850mm.
+   * Max 850mm sin soporte central (regla de estabilidad).
    */
-  width: z.number().int().min(400).max(900),
+  width: z.number().int().min(400).max(850),
 
   /**
    * Modulos dentro de la seccion, ordenados de ABAJO hacia ARRIBA.

@@ -18,7 +18,6 @@ export function WardrobeModel() {
   const h = dimensions.height / 1000;
   const d = dimensions.depth / 1000;
 
-  const interiorW = w - PANEL_THICKNESS_M * 2;
   const interiorH = h - PANEL_THICKNESS_M * 2;
   const interiorD = d - BACK_PANEL_THICKNESS_M;
 
@@ -56,12 +55,12 @@ export function WardrobeModel() {
 
       {/* Divisores verticales entre secciones */}
       {sections.length > 1 &&
-        sections.slice(0, -1).map((_, i) => {
-          const xOffset = computeSectionXOffset(sections, i + 1, interiorW);
+        sections.slice(0, -1).map((sec, i) => {
+          const xOffset = computeDividerXOffset(sections, i);
           return (
             <mesh
               key={`divider-${i}`}
-              position={[-interiorW / 2 + xOffset, h / 2, BACK_PANEL_THICKNESS_M / 2]}
+              position={[xOffset, h / 2, BACK_PANEL_THICKNESS_M / 2]}
               castShadow
             >
               <boxGeometry args={[PANEL_THICKNESS_M, interiorH, interiorD]} />
@@ -73,7 +72,7 @@ export function WardrobeModel() {
       {/* Contenido por seccion */}
       {sections.map((sec, secIdx) => {
         const secWidthM = sec.width / 1000;
-        const secXCenter = computeSectionCenterX(sections, secIdx, interiorW);
+        const secXCenter = computeSectionCenterX(sections, secIdx);
         let currentY = PANEL_THICKNESS_M;
 
         return (
@@ -141,7 +140,7 @@ export function WardrobeModel() {
         <group position={[0, 0, d / 2 + PANEL_THICKNESS_M / 2 + 0.002]}>
           {sections.map((sec, secIdx) => {
             const secWidthM = sec.width / 1000;
-            const secXCenter = computeSectionCenterX(sections, secIdx, interiorW);
+            const secXCenter = computeSectionCenterX(sections, secIdx);
             return (
               <Door
                 key={`door-${sec.id}`}
@@ -158,29 +157,38 @@ export function WardrobeModel() {
   );
 }
 
-function computeSectionXOffset(
+function computeDividerXOffset(
   sections: { width: number }[],
-  targetIndex: number,
-  interiorW: number
+  dividerIdx: number
 ): number {
-  const totalWidth = sections.reduce((sum, s) => sum + s.width, 0);
-  let offset = 0;
-  for (let i = 0; i < targetIndex; i++) {
-    offset += (sections[i].width / totalWidth) * interiorW;
+  const totalSectionsWidth = sections.reduce((sum, s) => sum + s.width, 0);
+  const totalDividersWidth = (sections.length - 1) * PANEL_THICKNESS_M * 1000;
+  const totalWidth = totalSectionsWidth + totalDividersWidth + PANEL_THICKNESS_M * 2000;
+
+  let xOffset = -totalWidth / 2 + PANEL_THICKNESS_M * 1000;
+  for (let i = 0; i <= dividerIdx; i++) {
+    xOffset += (sections[i].width / totalSectionsWidth) * totalSectionsWidth;
+    if (i < dividerIdx) {
+      xOffset += PANEL_THICKNESS_M * 1000;
+    }
   }
-  return offset;
+
+  return xOffset / 1000;
 }
 
 function computeSectionCenterX(
   sections: { width: number }[],
-  secIdx: number,
-  interiorW: number
+  secIdx: number
 ): number {
-  const totalWidth = sections.reduce((sum, s) => sum + s.width, 0);
-  let offset = 0;
+  const totalSectionsWidth = sections.reduce((sum, s) => sum + s.width, 0);
+  const totalDividersWidth = (sections.length - 1) * PANEL_THICKNESS_M * 1000;
+  const totalWidth = totalSectionsWidth + totalDividersWidth + PANEL_THICKNESS_M * 2000;
+
+  let xOffset = -totalWidth / 2 + PANEL_THICKNESS_M * 1000;
   for (let i = 0; i < secIdx; i++) {
-    offset += (sections[i].width / totalWidth) * interiorW;
+    xOffset += (sections[i].width / totalSectionsWidth) * totalSectionsWidth + PANEL_THICKNESS_M * 1000;
   }
-  const secW = (sections[secIdx].width / totalWidth) * interiorW;
-  return -interiorW / 2 + offset + secW / 2;
+  xOffset += (sections[secIdx].width / totalSectionsWidth) * totalSectionsWidth / 2;
+
+  return xOffset / 1000;
 }

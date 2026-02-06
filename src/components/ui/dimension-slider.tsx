@@ -19,7 +19,10 @@ export function DimensionSlider({
 }: DimensionSliderProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = Number(e.target.value);
-    onChange(newValue);
+    const roundedValue = Math.round(newValue);
+    if (roundedValue >= min && roundedValue <= max) {
+      onChange(roundedValue);
+    }
   };
 
   return (

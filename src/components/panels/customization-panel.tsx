@@ -1,7 +1,7 @@
 "use client";
 
 import { useWardrobeStore } from "@/stores/wardrobe-store";
-import { DIMENSION_LIMITS, MATERIAL_CATALOG, DOOR_TYPE_OPTIONS } from "@/lib/constants";
+import { computeDynamicDimensionLimits, MATERIAL_CATALOG, DOOR_TYPE_OPTIONS } from "@/lib/constants";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
@@ -13,10 +13,21 @@ const MATERIAL_KEYS = Object.keys(MATERIAL_CATALOG) as MaterialId[];
 export function CustomizationPanel() {
   const dimensions = useWardrobeStore((s) => s.config.dimensions);
   const setDimensions = useWardrobeStore((s) => s.setDimensions);
+  const structure = useWardrobeStore((s) => s.config.structure);
+  const sections = useWardrobeStore((s) => s.config.sections);
   const materialId = useWardrobeStore((s) => s.config.structure.material.id);
   const setMaterialId = useWardrobeStore((s) => s.setMaterialId);
   const doorType = useWardrobeStore((s) => s.config.doors.type);
   const setDoorType = useWardrobeStore((s) => s.setDoorType);
+
+  const limits = computeDynamicDimensionLimits({
+    zocalo: structure.zocalo,
+    maletero: structure.maletero,
+    panelThickness: structure.material.thickness,
+    sections,
+    currentWidth: dimensions.width,
+    currentHeight: dimensions.height,
+  });
 
   return (
     <div className="space-y-6 p-4">
@@ -33,10 +44,15 @@ export function CustomizationPanel() {
             </div>
             <Slider
               value={[dimensions.width / 10]}
-              min={DIMENSION_LIMITS.width.min / 10}
-              max={DIMENSION_LIMITS.width.max / 10}
+              min={limits.width.min / 10}
+              max={limits.width.max / 10}
               step={1}
-              onValueChange={([v]) => setDimensions({ width: v * 10 })}
+              onValueChange={([v]) => {
+                const roundedV = Math.round(v);
+                if (roundedV >= limits.width.min / 10 && roundedV <= limits.width.max / 10) {
+                  setDimensions({ width: roundedV * 10 });
+                }
+              }}
             />
           </div>
 
@@ -49,10 +65,15 @@ export function CustomizationPanel() {
             </div>
             <Slider
               value={[dimensions.height / 10]}
-              min={DIMENSION_LIMITS.height.min / 10}
-              max={DIMENSION_LIMITS.height.max / 10}
+              min={limits.height.min / 10}
+              max={limits.height.max / 10}
               step={1}
-              onValueChange={([v]) => setDimensions({ height: v * 10 })}
+              onValueChange={([v]) => {
+                const roundedV = Math.round(v);
+                if (roundedV >= limits.height.min / 10 && roundedV <= limits.height.max / 10) {
+                  setDimensions({ height: roundedV * 10 });
+                }
+              }}
             />
           </div>
 
@@ -65,10 +86,15 @@ export function CustomizationPanel() {
             </div>
             <Slider
               value={[dimensions.depth / 10]}
-              min={DIMENSION_LIMITS.depth.min / 10}
-              max={DIMENSION_LIMITS.depth.max / 10}
+              min={limits.depth.min / 10}
+              max={limits.depth.max / 10}
               step={1}
-              onValueChange={([v]) => setDimensions({ depth: v * 10 })}
+              onValueChange={([v]) => {
+                const roundedV = Math.round(v);
+                if (roundedV >= limits.depth.min / 10 && roundedV <= limits.depth.max / 10) {
+                  setDimensions({ depth: roundedV * 10 });
+                }
+              }}
             />
           </div>
         </div>

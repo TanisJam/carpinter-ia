@@ -13,6 +13,7 @@ import {
   createDefaultPlacardConfig,
   MATERIAL_CATALOG,
   DOOR_CIRCULATION,
+  SECTION_WIDTH_LIMITS,
 } from "@/lib/constants";
 
 type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
@@ -81,13 +82,54 @@ export const useWardrobeStore = create<WardrobeState>((set) => ({
 
   // ── Dimensions ──
   setDimensions: (dims) =>
-    set((s) => ({
-      config: {
-        ...s.config,
-        dimensions: { ...s.config.dimensions, ...dims },
-        metadata: { ...s.config.metadata, updatedAt: new Date().toISOString() },
-      },
-    })),
+    set((s) => {
+      const oldDims = s.config.dimensions;
+      const newDims = { ...oldDims, ...dims };
+
+      let sections = s.config.sections;
+      const panelThickness = s.config.structure.material.thickness;
+
+      if (newDims.width !== oldDims.width) {
+        const verticalPanelCount = sections.length + 1;
+        const panelWidthTotal = panelThickness * verticalPanelCount;
+        const availableWidth = newDims.width - panelWidthTotal;
+        const totalSectionsWidth = sections.reduce((sum, sec) => sum + sec.width, 0);
+
+        sections = sections.map((sec) => {
+          const newWidth = Math.round((sec.width / totalSectionsWidth) * availableWidth);
+          return {
+            ...sec,
+            width: Math.max(SECTION_WIDTH_LIMITS.min, Math.min(SECTION_WIDTH_LIMITS.max, newWidth)),
+          };
+        });
+      }
+
+      if (newDims.height !== oldDims.height) {
+        const zocaloH = s.config.structure.zocalo?.enabled ? s.config.structure.zocalo.height : 0;
+        const maleteroH = s.config.structure.maletero?.enabled ? s.config.structure.maletero.height : 0;
+
+        const oldUsableHeight = oldDims.height - zocaloH - maleteroH - panelThickness * 2;
+        const newUsableHeight = newDims.height - zocaloH - maleteroH - panelThickness * 2;
+        const ratio = newUsableHeight / oldUsableHeight;
+
+        sections = sections.map((sec) => ({
+          ...sec,
+          modules: sec.modules.map((mod) => ({
+            ...mod,
+            height: Math.round(mod.height * ratio),
+          })),
+        }));
+      }
+
+      return {
+        config: {
+          ...s.config,
+          dimensions: newDims,
+          sections,
+          metadata: { ...s.config.metadata, updatedAt: new Date().toISOString() },
+        },
+      };
+    }),
 
   // ── Structure / Material ──
   setMaterialId: (id) =>
@@ -143,6 +185,7 @@ export const useWardrobeStore = create<WardrobeState>((set) => ({
 
   addSection: (width) =>
     set((s) => {
+      const panelThickness = s.config.structure.material.thickness;
       const newSection: Section = {
         id: genId("sec"),
         order: s.config.sections.length,
@@ -158,10 +201,17 @@ export const useWardrobeStore = create<WardrobeState>((set) => ({
           },
         ],
       };
+      const newSections = [...s.config.sections, newSection];
+      const newTotalWidth = newSections.reduce((sum, sec) => sum + sec.width, 0) + panelThickness * (newSections.length + 1);
+
       return {
         config: {
           ...s.config,
-          sections: [...s.config.sections, newSection],
+          dimensions: {
+            ...s.config.dimensions,
+            width: newTotalWidth,
+          },
+          sections: newSections,
           metadata: { ...s.config.metadata, updatedAt: new Date().toISOString() },
         },
       };
@@ -170,12 +220,18 @@ export const useWardrobeStore = create<WardrobeState>((set) => ({
   removeSection: (id) =>
     set((s) => {
       if (s.config.sections.length <= 1) return s;
+      const panelThickness = s.config.structure.material.thickness;
       const filtered = s.config.sections
         .filter((sec) => sec.id !== id)
         .map((sec, i) => ({ ...sec, order: i }));
+      const newTotalWidth = filtered.reduce((sum, sec) => sum + sec.width, 0) + panelThickness * (filtered.length + 1);
       return {
         config: {
           ...s.config,
+          dimensions: {
+            ...s.config.dimensions,
+            width: newTotalWidth,
+          },
           sections: filtered,
           metadata: { ...s.config.metadata, updatedAt: new Date().toISOString() },
         },
@@ -183,15 +239,24 @@ export const useWardrobeStore = create<WardrobeState>((set) => ({
     }),
 
   updateSectionWidth: (id, width) =>
-    set((s) => ({
-      config: {
-        ...s.config,
-        sections: s.config.sections.map((sec) =>
-          sec.id === id ? { ...sec, width } : sec
-        ),
-        metadata: { ...s.config.metadata, updatedAt: new Date().toISOString() },
-      },
-    })),
+    set((s) => {
+      const panelThickness = s.config.structure.material.thickness;
+      const updatedSections = s.config.sections.map((sec) =>
+        sec.id === id ? { ...sec, width } : sec
+      );
+      const newTotalWidth = updatedSections.reduce((sum, sec) => sum + sec.width, 0) + panelThickness * (updatedSections.length + 1);
+      return {
+        config: {
+          ...s.config,
+          dimensions: {
+            ...s.config.dimensions,
+            width: newTotalWidth,
+          },
+          sections: updatedSections,
+          metadata: { ...s.config.metadata, updatedAt: new Date().toISOString() },
+        },
+      };
+    }),
 
   // ── Modules ──
   addModule: (sectionId, module) =>
