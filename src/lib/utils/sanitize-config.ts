@@ -75,24 +75,48 @@ export function sanitizePlacardConfig(config: PlacardConfig): PlacardConfig {
     };
   });
 
-  // 3. If total section widths don't match placard width, adjust proportionally
-  const totalSectionWidth = sanitized.sections.reduce((sum, s) => sum + s.width, 0);
+  // 3. If total section widths don't match placard width, adjust
   const targetWidth = sanitized.dimensions.width;
+
+  // Check if we need more sections to fit the target width
+  const minSectionsNeeded = Math.ceil(targetWidth / SECTION_WIDTH_LIMITS.max);
+
+  if (minSectionsNeeded > sanitized.sections.length) {
+    console.warn(
+      `Need ${minSectionsNeeded} sections to fit ${targetWidth}mm (max section width: ${SECTION_WIDTH_LIMITS.max}mm). Currently have ${sanitized.sections.length}. Adding sections.`
+    );
+
+    // Add sections by cloning the last section's module pattern
+    const templateSection = sanitized.sections[sanitized.sections.length - 1];
+    while (sanitized.sections.length < minSectionsNeeded) {
+      const newIndex = sanitized.sections.length;
+      sanitized.sections.push({
+        ...templateSection,
+        id: `sec-auto-${newIndex + 1}`,
+        order: newIndex,
+        modules: templateSection.modules.map((m, mi) => ({
+          ...m,
+          id: `mod-auto-${newIndex + 1}-${mi + 1}`,
+        })),
+      });
+    }
+  }
+
+  // Now distribute width proportionally
+  const totalSectionWidth = sanitized.sections.reduce((sum, s) => sum + s.width, 0);
 
   if (Math.abs(totalSectionWidth - targetWidth) > 10) {
     console.warn(`Total section width ${totalSectionWidth}mm doesn't match placard width ${targetWidth}mm. Adjusting proportionally.`);
-    
-    const ratio = targetWidth / totalSectionWidth;
+
+    const evenWidth = Math.round(targetWidth / sanitized.sections.length);
     let remainingWidth = targetWidth;
 
     sanitized.sections = sanitized.sections.map((section, index) => {
       if (index === sanitized.sections.length - 1) {
-        // Last section gets remaining width
         return { ...section, width: clamp(remainingWidth, SECTION_WIDTH_LIMITS.min, SECTION_WIDTH_LIMITS.max) };
       }
 
-      const newWidth = Math.round(section.width * ratio);
-      const clampedWidth = clamp(newWidth, SECTION_WIDTH_LIMITS.min, SECTION_WIDTH_LIMITS.max);
+      const clampedWidth = clamp(evenWidth, SECTION_WIDTH_LIMITS.min, SECTION_WIDTH_LIMITS.max);
       remainingWidth -= clampedWidth;
 
       return { ...section, width: clampedWidth };

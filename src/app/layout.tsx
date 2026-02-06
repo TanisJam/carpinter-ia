@@ -14,7 +14,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Carpinter-IA | Disena tu Placard a Medida",
+  title: "MADE | Diseña tu Placard a Medida",
   description:
     "Crea y personaliza tu placard ideal con inteligencia artificial. Ingresa tus medidas y visualiza en 3D.",
 };

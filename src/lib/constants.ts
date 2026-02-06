@@ -32,7 +32,7 @@ export const DIMENSION_LIMITS = {
 
 export const SECTION_WIDTH_LIMITS = {
   min: 400,
-  max: 1850,
+  max: 850,
   /** Modulacion recomendada segun optimizacion de corte de tableros */
   recommended: [600, 800, 850] as const,
 } as const;
