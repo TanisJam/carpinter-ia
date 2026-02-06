@@ -16,7 +16,7 @@ export function SceneControls() {
       <OrbitControls
         minPolarAngle={0.1}
         maxPolarAngle={Math.PI / 2 - 0.1}
-        enablePan={false}
+        enablePan={true}
         minDistance={1}
         maxDistance={8}
       />
