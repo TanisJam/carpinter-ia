@@ -1,18 +1,23 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, Suspense, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { ChevronUpIcon, ChevronDownIcon, HelpCircle, Settings } from "lucide-react";
+import { Header } from "@/components/shared/header";
+import { WizardContainer } from "@/components/wizard/wizard-container";
+import { CustomizationPanel } from "@/components/panels/customization-panel";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWardrobeStore } from "@/stores/wardrobe-store";
 import { WIZARD_STEPS } from "@/lib/constants";
 import { StepDimensiones } from "@/components/wizard/step-dimensiones";
 import { StepModulos } from "@/components/wizard/step-modulos";
 import { StepMateriales } from "@/components/wizard/step-materiales";
 import { StepPuertas } from "@/components/wizard/step-puertas";
-import { Button } from "@/components/ui/button";
-import { HelpCircle, Settings } from "lucide-react";
 import { placardConfigSchema } from "@/schemas/wardrobe-schema";
+import { cn } from "@/lib/utils";
 
 const WardrobeCanvas = dynamic(
   () =>
@@ -66,6 +71,7 @@ function ConfiguradorContent() {
   const sections = useWardrobeStore((s) => s.config.sections);
   const setIsAIGenerated = useWardrobeStore((s) => s.setIsAIGenerated);
   const loadConfigFromAI = useWardrobeStore((s) => s.loadConfigFromAI);
+  const [isWizardExpanded, setIsWizardExpanded] = useState(true);
 
   const StepComponent = STEP_COMPONENTS[currentStep - 1];
   const isFirst = currentStep === 1;
@@ -98,134 +104,60 @@ function ConfiguradorContent() {
   }, [searchParams, loadConfigFromAI, setIsAIGenerated]);
 
   return (
-    <div className="h-screen flex flex-col bg-white">
-      {/* Top Header */}
-      <header className="border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-gray-900 rounded-sm"></div>
-            <span className="font-semibold text-sm tracking-tight">
-              WARDROBE<span className="font-normal">CRAFT</span>
-            </span>
-            <span className="text-xs text-gray-400 ml-2">V.2.0 BETA</span>
+    <>
+      <Header />
+      <div className="h-[calc(100dvh-3.5rem)] flex flex-col lg:flex-row">
+        <div className="flex-1 relative flex flex-col">
+          <div className="h-1/2 lg:h-full flex-1">
+            <WardrobeCanvas />
           </div>
 
-          {/* Progress Steps */}
-          <nav className="flex items-center gap-6 text-sm">
-            <button className="text-gray-400 hover:text-gray-900">
-              1. SETUP
-            </button>
-            <button className="text-gray-900 font-medium underline underline-offset-4">
-              2. CONFIGURE
-            </button>
-            <button className="text-gray-400 hover:text-gray-900">
-              3. MATERIAL
-            </button>
-            <button className="text-gray-400 hover:text-gray-900">
-              4. REVIEW
-            </button>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-gray-100 rounded-full">
-            <HelpCircle className="w-5 h-5 text-gray-600" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded-full">
-            <Settings className="w-5 h-5 text-gray-600" />
-          </button>
-          <Button className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 text-sm">
-            SAVE PROJECT
-          </Button>
-        </div>
-      </header>
-
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Visualization */}
-        <div className="flex-1 flex flex-col bg-gray-50">
-          {/* View Mode Tabs */}
-          <div className="border-b border-gray-200 px-6 py-3 flex items-center gap-2 bg-white">
+          {/* Panel de wizard colapsable en mobile */}
+          <div className={cn("lg:hidden h-1/2 border-t bg-background flex flex-col transition-all duration-300", !isWizardExpanded && "h-auto")}>
             <button
-              onClick={() => setViewMode("2d")}
-              className={`px-4 py-2 text-xs font-semibold rounded transition-colors ${
-                viewMode === "2d"
-                  ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
-              }`}
+              onClick={() => setIsWizardExpanded(!isWizardExpanded)}
+              className="flex items-center justify-center p-3 border-b bg-muted/50 hover:bg-muted/70 transition-colors"
             >
-              2D VIEW
+              <span className="text-sm font-medium mr-2">Configuración</span>
+              {isWizardExpanded ? (
+                <ChevronDownIcon className="h-4 w-4" />
+              ) : (
+                <ChevronUpIcon className="h-4 w-4" />
+              )}
             </button>
-            <button
-              onClick={() => setViewMode("3d")}
-              className={`px-4 py-2 text-xs font-semibold rounded transition-colors ${
-                viewMode === "3d"
-                  ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
-              }`}
-            >
-              3D MODEL
-            </button>
+            {isWizardExpanded && (
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full">
+                  <WizardContainer />
+                </ScrollArea>
+              </div>
+            )}
           </div>
 
-          {/* Visualization Area */}
-          <div className="flex-1 relative">
-            {viewMode === "2d" ? <Canvas2DPlaceholder /> : <WardrobeCanvas />}
-          </div>
-
-          {/* Bottom Summary Bar */}
-          <div className="border-t border-gray-200 bg-white px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-8 text-sm">
-              <div>
-                <span className="text-gray-500 text-xs uppercase">
-                  Total Modules
-                </span>
-                <div className="font-semibold text-lg">{totalUnits} Units</div>
-              </div>
-              <div className="h-8 w-px bg-gray-200"></div>
-              <div>
-                <span className="text-gray-500 text-xs uppercase">
-                  Est. Cost
-                </span>
-                <div className="font-semibold text-lg">
-                  ${estimatedCost.toLocaleString()}
-                </div>
-              </div>
-            </div>
-            <Button
-              onClick={() => router.push("/export")}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
-            >
-              PROCEED
-            </Button>
+          <div className="absolute top-4 right-4 lg:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Ajustes
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] p-0">
+                <ScrollArea className="h-full">
+                  <CustomizationPanel />
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
 
-        {/* Right Panel - Configuration */}
-        <div className="w-[400px] border-l border-gray-200 flex flex-col bg-white">
-          {/* Step Tabs */}
-          <div className="border-b border-gray-200 flex overflow-x-auto">
-            {WIZARD_STEPS.map((step) => (
-              <button
-                key={step.id}
-                onClick={() => setCurrentStep(step.id)}
-                className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap ${
-                  currentStep === step.id
-                    ? "border-b-2 border-gray-900 text-gray-900"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                {step.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Step Content */}
-          <div className="flex-1 overflow-auto p-6">
-            <StepComponent />
-          </div>
+        {/* Wizard (izquierda en desktop) */}
+        <div className="hidden lg:block w-[420px] border-r flex flex-col bg-background">
+          <ScrollArea className="flex-1">
+            <WizardContainer />
+          </ScrollArea>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
