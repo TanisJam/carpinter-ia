@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/shared/header";
 import { WizardContainer } from "@/components/wizard/wizard-container";
@@ -10,7 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
+import { useWardrobeStore } from "@/stores/wardrobe-store";
+import { placardConfigSchema } from "@/schemas/wardrobe-schema";
 
 const WardrobeCanvas = dynamic(
   () =>
@@ -30,6 +33,30 @@ function CanvasPlaceholder() {
 
 export default function ConfiguradorPage() {
   const [isWizardExpanded, setIsWizardExpanded] = useState(true);
+  const searchParams = useSearchParams();
+  const setIsAIGenerated = useWardrobeStore((s) => s.setIsAIGenerated);
+  const loadConfigFromAI = useWardrobeStore((s) => s.loadConfigFromAI);
+
+  useEffect(() => {
+    const aiConfigParam = searchParams.get("aiConfig");
+
+    if (aiConfigParam) {
+      try {
+        const configJson = atob(decodeURIComponent(aiConfigParam));
+        const config = JSON.parse(configJson);
+
+        const validatedConfig = placardConfigSchema.parse(config);
+
+        loadConfigFromAI(validatedConfig);
+        setIsAIGenerated(true);
+
+        console.log("Loaded AI-generated config:", validatedConfig.id);
+      } catch (error) {
+        console.error("Error loading AI config:", error);
+        alert("Error al cargar la configuración generada por IA");
+      }
+    }
+  }, [searchParams, loadConfigFromAI, setIsAIGenerated]);
 
   return (
     <>
