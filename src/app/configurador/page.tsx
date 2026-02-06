@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
+import { ChevronUpIcon, ChevronDownIcon, HelpCircle, Settings } from "lucide-react";
 import { Header } from "@/components/shared/header";
 import { WizardContainer } from "@/components/wizard/wizard-container";
 import { CustomizationPanel } from "@/components/panels/customization-panel";
@@ -11,6 +11,11 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWardrobeStore } from "@/stores/wardrobe-store";
+import { WIZARD_STEPS } from "@/lib/constants";
+import { StepDimensiones } from "@/components/wizard/step-dimensiones";
+import { StepModulos } from "@/components/wizard/step-modulos";
+import { StepMateriales } from "@/components/wizard/step-materiales";
+import { StepPuertas } from "@/components/wizard/step-puertas";
 import { placardConfigSchema } from "@/schemas/wardrobe-schema";
 import { cn } from "@/lib/utils";
 
@@ -19,33 +24,77 @@ const WardrobeCanvas = dynamic(
     import("@/components/three/wardrobe-canvas").then(
       (mod) => mod.WardrobeCanvas
     ),
-  { ssr: false, loading: () => <CanvasPlaceholder /> }
+  { ssr: false }
 );
 
-function CanvasPlaceholder() {
+function Canvas2DPlaceholder() {
   return (
-    <div className="w-full h-full min-h-[400px] rounded-lg bg-linear-to-b from-slate-100 to-slate-200 flex items-center justify-center">
-      <p className="text-muted-foreground">Cargando vista 3D...</p>
+    <div className="w-full h-full flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="mb-4 text-gray-400">
+          <svg
+            className="w-16 h-16 mx-auto"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"
+            />
+          </svg>
+        </div>
+        <p className="text-sm text-gray-500">2D Blueprint View</p>
+      </div>
     </div>
   );
 }
 
+const STEP_COMPONENTS = [
+  StepDimensiones,
+  StepModulos,
+  StepMateriales,
+  StepPuertas,
+];
+
 function ConfiguradorContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
+
+  const currentStep = useWardrobeStore((s) => s.currentStep);
+  const setCurrentStep = useWardrobeStore((s) => s.setCurrentStep);
+  const nextStep = useWardrobeStore((s) => s.nextStep);
+  const prevStep = useWardrobeStore((s) => s.prevStep);
+  const sections = useWardrobeStore((s) => s.config.sections);
   const setIsAIGenerated = useWardrobeStore((s) => s.setIsAIGenerated);
   const loadConfigFromAI = useWardrobeStore((s) => s.loadConfigFromAI);
   const [isWizardExpanded, setIsWizardExpanded] = useState(true);
 
+  const StepComponent = STEP_COMPONENTS[currentStep - 1];
+  const isFirst = currentStep === 1;
+  const isLast = currentStep === WIZARD_STEPS.length;
+
+  const totalUnits = sections.length;
+  const estimatedCost = 1240;
+
   useEffect(() => {
     const aiConfigParam = searchParams.get("aiConfig");
-    
+
     if (aiConfigParam) {
       try {
         const configJson = atob(decodeURIComponent(aiConfigParam));
         const config = JSON.parse(configJson);
+
+        // Validate with schema
         const validatedConfig = placardConfigSchema.parse(config);
+
+        // Load into store
         loadConfigFromAI(validatedConfig);
         setIsAIGenerated(true);
+
         console.log("Loaded AI-generated config:", validatedConfig.id);
       } catch (error) {
         console.error("Error loading AI config:", error);
@@ -98,12 +147,6 @@ function ConfiguradorContent() {
                 </ScrollArea>
               </SheetContent>
             </Sheet>
-          </div>
-
-          <div className="hidden lg:block absolute top-4 right-4 w-[280px] max-h-[calc(100%-2rem)] bg-background/95 backdrop-blur border rounded-lg shadow-lg overflow-hidden">
-            <ScrollArea className="max-h-[calc(100vh-6rem)]">
-              <CustomizationPanel />
-            </ScrollArea>
           </div>
         </div>
 
