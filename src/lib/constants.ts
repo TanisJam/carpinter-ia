@@ -288,13 +288,21 @@ export function computeUsableHeight(config: {
   return config.height - zocaloH - maleteroH - config.panelThickness * 2;
 }
 
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 /**
  * Genera un PlacardConfig por defecto listo para usar.
  */
 export function createDefaultPlacardConfig(): PlacardConfig {
   const now = new Date().toISOString();
   return {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     schemaVersion: "1.0.0",
     metadata: {
       name: "Mi Placard",
