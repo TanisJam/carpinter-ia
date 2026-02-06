@@ -7,6 +7,10 @@ import { CustomizationPanel } from "@/components/panels/customization-panel";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+
 
 const WardrobeCanvas = dynamic(
   () =>
@@ -25,20 +29,38 @@ function CanvasPlaceholder() {
 }
 
 export default function ConfiguradorPage() {
+  const [isWizardExpanded, setIsWizardExpanded] = useState(true);
+
   return (
     <>
       <Header />
-      <div className="h-[calc(100vh-3.5rem)] flex flex-col lg:flex-row">
-        {/* Wizard (izquierda en desktop) */}
-        <div className="w-full lg:w-[420px] border-r flex flex-col bg-background">
-          <ScrollArea className="flex-1">
-            <WizardContainer />
-          </ScrollArea>
-        </div>
+      <div className="h-[calc(100dvh-3.5rem)] flex flex-col lg:flex-row">
+        <div className="flex-1 relative flex flex-col">
+          <div className="h-1/2 lg:h-full flex-1">
+            <WardrobeCanvas />
+          </div>
 
-        {/* Canvas 3D (derecha en desktop) */}
-        <div className="flex-1 relative">
-          <WardrobeCanvas />
+          {/* Panel de wizard colapsable en mobile */}
+          <div className={cn("lg:hidden h-1/2 border-t bg-background flex flex-col transition-all duration-300", !isWizardExpanded && "h-auto")}>
+            <button
+              onClick={() => setIsWizardExpanded(!isWizardExpanded)}
+              className="flex items-center justify-center p-3 border-b bg-muted/50 hover:bg-muted/70 transition-colors"
+            >
+              <span className="text-sm font-medium mr-2">Configuración</span>
+              {isWizardExpanded ? (
+                <ChevronDownIcon className="h-4 w-4" />
+              ) : (
+                <ChevronUpIcon className="h-4 w-4" />
+              )}
+            </button>
+            {isWizardExpanded && (
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full">
+                  <WizardContainer />
+                </ScrollArea>
+              </div>
+            )}
+          </div>
 
           {/* Boton para abrir panel de personalizacion en mobile */}
           <div className="absolute top-4 right-4 lg:hidden">
@@ -62,6 +84,13 @@ export default function ConfiguradorPage() {
               <CustomizationPanel />
             </ScrollArea>
           </div>
+        </div>
+
+        {/* Wizard (izquierda en desktop) */}
+        <div className="hidden lg:block w-[420px] border-r flex flex-col bg-background">
+          <ScrollArea className="flex-1">
+            <WizardContainer />
+          </ScrollArea>
         </div>
       </div>
     </>
