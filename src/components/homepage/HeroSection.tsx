@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { colors } from "@/styles/colors";
+import { Sparkles } from "lucide-react";
+import { VoiceInput } from "./VoiceInput";
 
 interface HeroSectionProps {
   title: string;
@@ -17,19 +16,46 @@ export function HeroSection({
   placeholder,
   submitButton,
 }: HeroSectionProps) {
-  const [description, setDescription] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = () => {
-    if (description.trim()) {
-      // Navigate to configurator with AI description
-      router.push(`/configurador?ai=${encodeURIComponent(description)}`);
-    }
-  };
+  const handleSubmit = async (transcript: string) => {
+    setIsProcessing(true);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-      handleSubmit();
+    try {
+      // Call API to convert natural language to config
+      const response = await fetch("/api/nl-to-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ transcript }),
+      });
+
+      if (!response.ok) {
+        // Try to get error message from response
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `Error ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      const { config, warning } = data;
+
+      // Show warning if using mock generator
+      if (warning) {
+        console.warn(warning);
+        alert(`⚠️ ${warning}`);
+      }
+
+      // Encode config as base64 and navigate to configurator
+      const configBase64 = btoa(JSON.stringify(config));
+      router.push(`/configurador?aiConfig=${encodeURIComponent(configBase64)}`);
+    } catch (error) {
+      console.error("Error:", error);
+      const message = error instanceof Error ? error.message : "Error desconocido";
+      alert(`Hubo un error al generar la configuración:\n\n${message}\n\nPor favor, verifica que tu OPENAI_API_KEY esté configurada en .env.local`);
+      setIsProcessing(false);
     }
   };
 
@@ -40,28 +66,7 @@ export function HeroSection({
         <h2 className="text-lg font-semibold text-gray-700">{title}</h2>
       </div>
 
-      <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        className="w-full min-h-[120px] p-4 bg-gray-50 rounded-lg border-0 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 placeholder:text-gray-400"
-      />
-
-      <Button
-        onClick={handleSubmit}
-        disabled={!description.trim()}
-        className="w-full mt-4 text-white py-6 rounded-lg font-medium text-base flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{
-          backgroundColor: colors.primaryWithOpacity,
-          ...(description.trim() && {
-            ":hover": { backgroundColor: colors.hover },
-          }),
-        }}
-      >
-        {submitButton}
-        <ChevronRight className="w-5 h-5" />
-      </Button>
+      <VoiceInput onSubmit={handleSubmit} isProcessing={isProcessing} />
     </div>
   );
 }
