@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -12,7 +12,6 @@ import { StepMateriales } from "@/components/wizard/step-materiales";
 import { StepPuertas } from "@/components/wizard/step-puertas";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Settings } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { placardConfigSchema } from "@/schemas/wardrobe-schema";
 
 const WardrobeCanvas = dynamic(
@@ -55,7 +54,7 @@ const STEP_COMPONENTS = [
   StepPuertas,
 ];
 
-export default function ConfiguradorPage() {
+function ConfiguradorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
@@ -80,17 +79,16 @@ export default function ConfiguradorPage() {
 
     if (aiConfigParam) {
       try {
-        // Decode base64 and parse JSON
         const configJson = atob(decodeURIComponent(aiConfigParam));
         const config = JSON.parse(configJson);
-
+        
         // Validate with schema
         const validatedConfig = placardConfigSchema.parse(config);
-
+        
         // Load into store
         loadConfigFromAI(validatedConfig);
         setIsAIGenerated(true);
-
+        
         console.log("Loaded AI-generated config:", validatedConfig.id);
       } catch (error) {
         console.error("Error loading AI config:", error);
@@ -228,5 +226,13 @@ export default function ConfiguradorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfiguradorPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <ConfiguradorContent />
+    </Suspense>
   );
 }
