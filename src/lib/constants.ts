@@ -32,9 +32,9 @@ export const DIMENSION_LIMITS = {
 
 export const SECTION_WIDTH_LIMITS = {
   min: 400,
-  max: 900,
+  max: 1850,
   /** Modulacion recomendada segun optimizacion de corte de tableros */
-  recommended: [600, 800, 900] as const,
+  recommended: [600, 800, 850] as const,
 } as const;
 
 // ── Reglas ergonomicas del PDF ──────────────────────────
@@ -286,6 +286,59 @@ export function computeUsableHeight(config: {
   const maleteroH = config.maletero.enabled ? config.maletero.height : 0;
   // Dos paneles horizontales: tapa superior y base
   return config.height - zocaloH - maleteroH - config.panelThickness * 2;
+}
+
+/**
+ * Calcula los limites de dimensiones del mueble basados en las secciones y modulos actuales.
+ * El ancho se basa en: suma de anchos de las secciones existentes + paneles laterales + separadores
+ * La altura se basa en: max altura de modulos por seccion + zocalo + maletero + paneles
+ */
+export function computeDynamicDimensionLimits(config: {
+  zocalo: { enabled: boolean; height: number };
+  maletero: { enabled: boolean; height: number };
+  panelThickness: number;
+  sections: Array<{ width: number; modules: Array<{ type: string; height: number }> }>;
+  currentWidth?: number;
+  currentHeight?: number;
+}): {
+  width: { min: number; max: number; step: number };
+  height: { min: number; max: number; step: number };
+  depth: { min: number; max: number; step: number };
+} {
+  const zocaloH = config.zocalo.enabled ? config.zocalo.height : 0;
+  const maleteroH = config.maletero.enabled ? config.maletero.height : 0;
+  const panelThickness = config.panelThickness;
+
+  // Ancho: secciones + (N+1) paneles verticales (2 laterales + N-1 separadores)
+  const sectionCount = config.sections.length;
+  const verticalPanelCount = sectionCount + 1;
+  const panelWidthTotal = panelThickness * verticalPanelCount;
+
+  // Cada seccion entre SECTION_WIDTH_LIMITS.min y SECTION_WIDTH_LIMITS.max
+  const widthMin = sectionCount * SECTION_WIDTH_LIMITS.min + panelWidthTotal;
+  const widthMax = sectionCount * SECTION_WIDTH_LIMITS.max + panelWidthTotal;
+
+  // Altura: basada en la maxima altura de modulos por seccion + zocalo + maletero + paneles
+  let maxModuleHeight = 0;
+  for (const sec of config.sections) {
+    const sectionHeight = sec.modules.reduce((sum, mod) => sum + mod.height, 0);
+    if (sectionHeight > maxModuleHeight) {
+      maxModuleHeight = sectionHeight;
+    }
+  }
+
+  const heightMax = maxModuleHeight + zocaloH + maleteroH + panelThickness * 2;
+  let heightMin = Math.max(2100, heightMax * 0.8);
+
+  if (config.currentHeight) {
+    heightMin = Math.min(heightMin, config.currentHeight);
+  }
+
+  return {
+    width: { min: Math.round(widthMin), max: Math.round(widthMax), step: 10 },
+    height: { min: Math.round(heightMin), max: Math.round(heightMax), step: 10 },
+    depth: { min: 350, max: 700, step: 10 },
+  };
 }
 
 function generateUUID(): string {

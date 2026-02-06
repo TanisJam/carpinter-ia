@@ -1,7 +1,7 @@
 "use client";
 
 import { useWardrobeStore } from "@/stores/wardrobe-store";
-import { DIMENSION_LIMITS } from "@/lib/constants";
+import { computeDynamicDimensionLimits } from "@/lib/constants";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -15,6 +15,17 @@ const FIELDS = [
 export function StepDimensiones() {
   const dimensions = useWardrobeStore((s) => s.config.dimensions);
   const setDimensions = useWardrobeStore((s) => s.setDimensions);
+  const structure = useWardrobeStore((s) => s.config.structure);
+  const sections = useWardrobeStore((s) => s.config.sections);
+
+  const limits = computeDynamicDimensionLimits({
+    zocalo: structure.zocalo,
+    maletero: structure.maletero,
+    panelThickness: structure.material.thickness,
+    sections,
+    currentWidth: dimensions.width,
+    currentHeight: dimensions.height,
+  });
 
   return (
     <div className="space-y-6">
@@ -26,11 +37,10 @@ export function StepDimensiones() {
       </div>
 
       {FIELDS.map(({ key, label, unit }) => {
-        const limits = DIMENSION_LIMITS[key];
         const valueMm = dimensions[key];
         const valueCm = valueMm / 10;
-        const minCm = limits.min / 10;
-        const maxCm = limits.max / 10;
+        const minCm = limits[key].min / 10;
+        const maxCm = limits[key].max / 10;
 
         return (
           <div key={key} className="space-y-3">
@@ -49,7 +59,12 @@ export function StepDimensiones() {
                 min={minCm}
                 max={maxCm}
                 step={1}
-                onValueChange={([v]) => setDimensions({ [key]: v * 10 })}
+                onValueChange={([v]) => {
+                  const roundedV = Math.round(v);
+                  if (roundedV >= minCm && roundedV <= maxCm) {
+                    setDimensions({ [key]: roundedV * 10 });
+                  }
+                }}
                 className="flex-1"
               />
               <div className="flex items-center gap-1">
@@ -61,8 +76,9 @@ export function StepDimensiones() {
                   max={maxCm}
                   onChange={(e) => {
                     const v = Number(e.target.value);
-                    if (v >= minCm && v <= maxCm) {
-                      setDimensions({ [key]: v * 10 });
+                    const roundedV = Math.round(v);
+                    if (!isNaN(roundedV) && roundedV >= minCm && roundedV <= maxCm) {
+                      setDimensions({ [key]: roundedV * 10 });
                     }
                   }}
                   className="w-20 text-center"
