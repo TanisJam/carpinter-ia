@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Grid3x3, Sparkles, Mic, MicOff, Loader2 } from "lucide-react";
-import { Logo } from "./Logo";
+import { Sparkles, Mic, MicOff, Loader2 } from "lucide-react";
+import { AppHeader } from "@/components/shared/app-header";
 import copy from "@/copy/homepage.json";
 
 export function Homepage() {
@@ -99,10 +99,7 @@ export function Homepage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Navigation */}
-      <nav className="w-full px-6 py-4 flex justify-between items-center border-b border-gray-100">
-        <Logo appName={copy.header.appName} className="justify-center" />
-      </nav>
+      <AppHeader />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-16 md:pt-20">

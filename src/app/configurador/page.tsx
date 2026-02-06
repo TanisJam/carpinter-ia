@@ -3,8 +3,13 @@
 import { useEffect, Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { ChevronUpIcon, ChevronDownIcon, HelpCircle, Settings } from "lucide-react";
-import { Header } from "@/components/shared/header";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  HelpCircle,
+  Settings,
+} from "lucide-react";
+import { AppHeader } from "@/components/shared/app-header";
 import { WizardContainer } from "@/components/wizard/wizard-container";
 import { CustomizationPanel } from "@/components/panels/customization-panel";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -105,7 +110,7 @@ function ConfiguradorContent() {
 
   return (
     <>
-      <Header />
+      <AppHeader />
       <div className="h-[calc(100dvh-3.5rem)] flex flex-col lg:flex-row">
         <div className="flex-1 relative flex flex-col">
           <div className="h-1/2 lg:h-full flex-1">
@@ -113,12 +118,17 @@ function ConfiguradorContent() {
           </div>
 
           {/* Panel de wizard colapsable en mobile */}
-          <div className={cn("lg:hidden h-1/2 border-t bg-background flex flex-col transition-all duration-300", !isWizardExpanded && "h-auto")}>
+          <div
+            className={cn(
+              "lg:hidden h-1/2 border-t bg-background flex flex-col transition-all duration-300",
+              !isWizardExpanded && "h-auto"
+            )}
+          >
             <button
               onClick={() => setIsWizardExpanded(!isWizardExpanded)}
               className="flex items-center justify-center p-3 border-b bg-muted/50 hover:bg-muted/70 transition-colors"
             >
-              <span className="text-sm font-medium mr-2">Configuración</span>
+              <span className="text-sm font-medium mr-2">Configuration</span>
               {isWizardExpanded ? (
                 <ChevronDownIcon className="h-4 w-4" />
               ) : (
@@ -138,7 +148,7 @@ function ConfiguradorContent() {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm">
-                  Ajustes
+                  Settings
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] p-0">
