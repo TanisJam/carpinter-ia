@@ -55,6 +55,11 @@ interface WardrobeState {
   isLoadingAI: boolean;
   setIsLoadingAI: (loading: boolean) => void;
 
+  // ── AI Generated Config ──
+  isAIGenerated: boolean;
+  setIsAIGenerated: (value: boolean) => void;
+  loadConfigFromAI: (config: PlacardConfig) => void;
+
   // ── Reset ──
   reset: () => void;
 }
@@ -253,6 +258,16 @@ export const useWardrobeStore = create<WardrobeState>((set) => ({
   isLoadingAI: false,
   setIsLoadingAI: (loading) => set({ isLoadingAI: loading }),
 
+  // ── AI Generated Config ──
+  isAIGenerated: false,
+  setIsAIGenerated: (value) => set({ isAIGenerated: value }),
+  loadConfigFromAI: (config) =>
+    set({
+      config,
+      currentStep: 1, // Start from step 1
+      isAIGenerated: true,
+    }),
+
   // ── Reset ──
   reset: () =>
     set({
@@ -260,5 +275,7 @@ export const useWardrobeStore = create<WardrobeState>((set) => ({
       config: createDefaultPlacardConfig(),
       aiSuggestions: [],
       isLoadingAI: false,
+      isAIGenerated: false,
     }),
 }));
+
